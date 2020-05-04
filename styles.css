@@ -1,0 +1,7 @@
+/* The APCu GUI works with position: absolute.
+   We have to work around this in a rather ugly way when we want to integrate the APCu GUI into the Moodle page. */
+#page-admin-tool-apcu-index #region-main {
+    height: 1200px;
+    overflow-y: scroll;
+    position: relative;
+}

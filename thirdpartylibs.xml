@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<libraries>
+  <library>
+    <location>lib/apcu-gui</location>
+    <name>APCu GUI</name>
+    <license>PHP License</license>
+    <version></version>
+    <licenseversion>3.01</licenseversion>
+  </library>
+</libraries>
