@@ -30,58 +30,68 @@ global $CFG;
 // Set up the plugin's main page as external admin page.
 admin_externalpage_setup('tool_apcu');
 
-// Page setup.
-$title = get_string('pluginname', 'tool_apcu');
-$PAGE->set_title($title);
-$PAGE->set_heading($title);
+// Check if the APCu tool exists on disk so that we can require it.
+if (tool_apcu_verify_guidrop_file() == true) {
+    // Page setup.
+    $title = get_string('pluginname', 'tool_apcu');
+    $PAGE->set_title($title);
+    $PAGE->set_heading($title);
 
-// Output has to be buffered because we want to modify the APCu GUI HTML code and as the APCu GUI sends some HTTP headers.
-ob_start();
+    // Output has to be buffered because we want to modify the APCu GUI HTML code and as the APCu GUI sends some HTTP headers.
+    ob_start();
 
-// Include APCu GUI.
-require_once(__DIR__ . '/lib/apcu-gui/apcu.php.inc');
+    // Include APCu GUI.
+    $toolpath = tool_apcu_get_guidrop_path();
+    require_once($toolpath);
 
-// Get buffered content and finish buffering.
-$output = ob_get_contents();
-ob_end_clean();
+    // Get buffered content and finish buffering.
+    $output = ob_get_contents();
+    ob_end_clean();
 
-// Take control over libXML error handling as the APCu GUI HTML code is not perfect.
-libxml_use_internal_errors(true);
+    // Take control over libXML error handling as the APCu GUI HTML code is not perfect.
+    libxml_use_internal_errors(true);
 
-// Process APCu GUI HTML code into a DOMDocument object.
-$apcudoc = new DOMDocument();
-$apcudoc->loadHTML($output);
+    // Process APCu GUI HTML code into a DOMDocument object.
+    $apcudoc = new DOMDocument();
+    $apcudoc->loadHTML($output);
 
-// Process DOM and extract the body tag.
-$apcubodytag = $apcudoc->getElementsByTagName('body')->item(0);
-$apcuguihtml = $apcudoc->saveHTML($apcubodytag);
+    // Process DOM and extract the body tag.
+    $apcubodytag = $apcudoc->getElementsByTagName('body')->item(0);
+    $apcuguihtml = $apcudoc->saveHTML($apcubodytag);
 
-// Process DOM and extract the style tag.
-$apcustyletag = $apcudoc->getElementsByTagName('style')->item(0);
-$apcustylescode = $apcustyletag->nodeValue;
+    // Process DOM and extract the style tag.
+    $apcustyletag = $apcudoc->getElementsByTagName('style')->item(0);
+    $apcustylescode = $apcustyletag->nodeValue;
 
-// Throw away any libXML errors which have been raised.
-libxml_clear_errors();
+    // Throw away any libXML errors which have been raised.
+    libxml_clear_errors();
 
-// Finish control over libXML error handling.
-libxml_use_internal_errors(false);
+    // Finish control over libXML error handling.
+    libxml_use_internal_errors(false);
 
-// Remove the HTML comments from the style code as they would interfere with the upcoming prefixing.
-$apcustylescode = str_replace('<!--', '', $apcustylescode);
-$apcustylescode = str_replace('//-->', '', $apcustylescode);
+    // Remove the HTML comments from the style code as they would interfere with the upcoming prefixing.
+    $apcustylescode = str_replace('<!--', '', $apcustylescode);
+    $apcustylescode = str_replace('//-->', '', $apcustylescode);
 
-// Prefix all styles to avoid any conflicts with Moodle styles.
-$cssprefix = '#page-admin-tool-apcu-index #region-main';
-$apcustylescode = tool_apcu_get_prefixed_css($apcustylescode, $cssprefix);
+    // Prefix all styles to avoid any conflicts with Moodle styles.
+    $cssprefix = '#page-admin-tool-apcu-index #region-main';
+    $apcustylescode = tool_apcu_get_prefixed_css($apcustylescode, $cssprefix);
 
-// Add the APCu GUI styles to the page.
-$CFG->additionalhtmlhead .= '<style>'.$apcustylescode.'</style>';
+    // Add the APCu GUI styles to the page.
+    $CFG->additionalhtmlhead .= '<style>'.$apcustylescode.'</style>';
 
-// Page setup.
-echo $OUTPUT->header();
+    // Page setup.
+    echo $OUTPUT->header();
 
-// Output APCu GUI.
-echo $apcuguihtml;
+    // Output APCu GUI.
+    echo $apcuguihtml;
 
-// Page setup.
-echo $OUTPUT->footer();
+    // Page setup.
+    echo $OUTPUT->footer();
+
+    // Otherwise.
+} else {
+    // Output message about missing APCu GUI file.
+    print_error('guidropmissing', 'tool_apcu');
+}
+

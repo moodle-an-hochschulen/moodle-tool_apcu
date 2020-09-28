@@ -17,9 +17,9 @@ Motivation for this plugin
 
 For performance reasons, Moodle should always be run with a Caching backend. APCu is such a caching backend which is directly available in the PHP runtime. Unfortunately, APCu is kind of a black box and doesn't provide a management interface by default.
 
-Luckily, the APCu developers provide a single-file APCu management GUIs within their codebase (https://github.com/krakjoe/apcu/). As a Moodle server administrator, can just throw the apc.php file somewhere onto your Moodle server and get a APCu management GUI instantly. However, this approach requires that you protect the APCu management GUI from unauthorized access manually in your webserver and comes with the downside that the APCu management GUI is located outside Moodle.
+Luckily, the APCu developers provide a single-file APCu management GUIs within their codebase (https://github.com/krakjoe/apcu/). As a Moodle server administrator, you can just throw the apc.php file somewhere onto your Moodle server and get a APCu management GUI instantly. However, this approach requires that you protect the APCu management GUI from unauthorized access manually in your webserver and comes with the downside that the APCu management GUI is located outside Moodle.
 
-For these reasons, we have packaged the APCu management GUI as a very simple Moodle admin tool providing it within Moodle site adminstration for Moodle administrators only.
+For these reasons, we provide a wrapper to the APCu management GUI as a very simple Moodle admin tool providing it within Moodle site administration for Moodle administrators only.
 
 
 Installation
@@ -31,10 +31,24 @@ Install the plugin like any other plugin to folder
 See http://docs.moodle.org/en/Installing_plugins for details on installing Moodle plugins
 
 
+APCu management GUI file installation
+-------------------------------------
+
+This plugin wraps the APCu management GUI which was built by the APCu developers. This APCu management GUI is just a small PHP file. Unfortunately, this file can't be shipped together with this plugin's code as its PHP license is incompatible with Moodle's GPL license.
+
+During installation, the plugin tries to download and store the APCu management GUI file to your wwwroot automatically. If this mechanism fails, especially because of the lack of permissions, you have to download the APCu management GUI file manually and store it to your webserver. Until you download and store this file, the plugin will not work.
+
+The APCu management GUI is to be downloaded from:
+https://raw.githubusercontent.com/krakjoe/apcu/master/apc.php
+
+The APCu management GUI is to be stored to:
+/tool/apcu/lib/apcu-gui/apcu.php.inc
+
+
 Usage
 -----
 
-After installing the plugin, it is active and fully working.
+After installing the plugin and storing the APCi management GUI file, it is active and fully working.
 
 To use the plugin, please visit:
 Site administration -> Server -> APCu management.
@@ -45,13 +59,13 @@ The APCu management GUI should be self-explanatory for experienced PHP administr
 How this plugin works
 ---------------------
 
-This plugin works in a really simple way. It adds an admin tool page to Moodle's site administration tree and restricts access to this admin tool page to Moodle administrators (and other users having the moodle/site:config capability). The APCu management GUI is shipped as a library file with this plugin and is just included on the admin tool page.
+This plugin works in a really simple way. It adds an admin tool page to Moodle's site administration tree and restricts access to this admin tool page to Moodle administrators (and other users having the moodle/site:config capability). The APCu management GUI is just included on the admin tool page.
 
 
 Security note
 -------------
 
-The APCu management GUI was added as a library to this Moodle plugin and was renamed to /lib/apcu-gui/apcu.php.inc.
+The APCu management GUI file is stored as a library to this Moodle plugin and is renamed to /lib/apcu-gui/apcu.php.inc.
 
 There is a potential for sensitive data leak, not personal data but data about the webserver's PHP configuration, if your webserver is configured to interpret *.inc files as PHP. An anonymous user could then visit the library's index page directly via https://yourmoodle.com/admin/tool/apcu/lib/apcu-gui/apcu.php.inc and would see the APCu management GUI circumventing Moodle's access control.
 
