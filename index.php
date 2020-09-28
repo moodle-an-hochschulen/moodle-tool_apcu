@@ -24,7 +24,7 @@
 
 require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->dirroot.'/admin/tool/apcu/locallib.php');
+require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/locallib.php');
 global $CFG;
 
 // Set up the plugin's main page as external admin page.
