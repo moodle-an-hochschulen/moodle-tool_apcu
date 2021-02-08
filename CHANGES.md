@@ -4,7 +4,7 @@ moodle-tool_apcu
 Changes
 -------
 
-### Unreleased
+### v3.8-r1
 
 * 2020-09-28 - Prepare compatibility for Moodle 3.8.
 
