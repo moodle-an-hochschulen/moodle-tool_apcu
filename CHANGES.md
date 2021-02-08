@@ -4,6 +4,10 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2020-09-28 - Prepare compatibility for Moodle 3.8.
+
 ### v3.7-r2
 
 * 2020-09-29 - Remove the APCu GUI file from the plugin codebase as this is a requirement for approval of the plugin on moodle.org/plugins.
