@@ -4,6 +4,10 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2021-01-06 - Improvement: Declare which major stable version of Moodle this plugin supports (see MDL-59562 for details).
+
 ### v3.9-r1
 
 * 2020-09-28 - Prepare compatibility for Moodle 3.9.
