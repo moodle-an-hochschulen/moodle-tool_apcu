@@ -1,7 +1,7 @@
 moodle-tool_apcu
 ===================
 
-[![Build Status](https://travis-ci.com/moodleuulm/moodle-tool_apcu.svg?branch=master)](https://travis-ci.com/moodleuulm/moodle-tool_apcu)
+[![Moodle Plugin CI](https://github.com/moodleuulm/moodle-tool_apcu/workflows/Moodle%20Plugin%20CI/badge.svg?branch=master)](https://github.com/moodleuulm/moodle-tool_apcu/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amaster)
 
 Moodle plugin which adds a PHP APCu management GUI to Moodle site administration.
 
