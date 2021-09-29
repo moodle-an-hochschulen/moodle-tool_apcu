@@ -4,7 +4,7 @@ moodle-tool_apcu
 Changes
 -------
 
-### Unreleased
+### v3.9-r3
 
 * 2021-09-29 - Replace the deprecated print_error() function with a Moodle exception
 * 2021-02-05 - Move Moodle Plugin CI from Travis CI to Github actions
