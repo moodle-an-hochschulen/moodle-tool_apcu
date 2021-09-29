@@ -92,6 +92,6 @@ if (tool_apcu_verify_guidrop_file() == true) {
     // Otherwise.
 } else {
     // Output message about missing APCu GUI file.
-    print_error('guidropmissing', 'tool_apcu');
+    throw new \moodle_exception('guidropmissing', 'tool_apcu');
 }
 
