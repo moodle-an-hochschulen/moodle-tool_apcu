@@ -4,6 +4,10 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2022-06-26 - Update maintainers and copyrights in README.md.
+
 ### v3.10-r2
 
 * 2021-09-29 - Replace the deprecated print_error() function with a Moodle exception
