@@ -26,7 +26,5 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 // Don't use APCu GUI authentication as we include this file into the Moodle capability checks.
 define('USE_AUTHENTICATION', 0);
