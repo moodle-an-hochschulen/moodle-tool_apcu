@@ -56,6 +56,12 @@ Site administration -> Server -> APCu management.
 The APCu management GUI should be self-explanatory for experienced PHP administrators.
 
 
+Capabilities
+------------
+
+This plugin does not add any additional capabilities.
+
+
 How this plugin works
 ---------------------
 
