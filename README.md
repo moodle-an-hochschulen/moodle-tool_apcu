@@ -9,7 +9,7 @@ Moodle plugin which adds a PHP APCu management GUI to Moodle site administration
 Requirements
 ------------
 
-This plugin requires Moodle 4.0+
+This plugin requires Moodle 4.1+
 
 
 Motivation for this plugin
