@@ -44,7 +44,7 @@ function xmldb_tool_apcu_upgrade($oldversion) {
         $guidropsuccessful = tool_apcu_do_guidrop();
 
         // Compose message.
-        $messagepaths = array('source' => tool_apcu_get_guidrop_url(), 'target' => tool_apcu_get_guidrop_path());
+        $messagepaths = ['source' => tool_apcu_get_guidrop_url(), 'target' => tool_apcu_get_guidrop_path()];
         $message = '<p>'.get_string('guidropupgradecheckfail', 'tool_apcu', $messagepaths).'</p>';
         if ($guidropsuccessful == true) {
             $message .= '<p>'.get_string('guidropsuccess', 'tool_apcu', $messagepaths).'</p>';
