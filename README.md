@@ -1,7 +1,7 @@
 moodle-tool_apcu
 ================
 
-[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-tool_apcu/workflows/Moodle%20Plugin%20CI/badge.svg?branch=master)](https://github.com/moodle-an-hochschulen/moodle-tool_apcu/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amaster)
+[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-tool_apcu/workflows/Moodle%20Plugin%20CI/badge.svg?branch=MOODLE_402_STABLE)](https://github.com/moodle-an-hochschulen/moodle-tool_apcu/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3AMOODLE_402_STABLE)
 
 Moodle plugin which adds a PHP APCu management GUI to Moodle site administration.
 
@@ -39,7 +39,7 @@ This plugin wraps the APCu management GUI which was built by the APCu developers
 During installation, the plugin tries to download and store the APCu management GUI file to your wwwroot automatically. If this mechanism fails, especially because of the lack of permissions, you have to download the APCu management GUI file manually and store it to your webserver. Until you download and store this file, the plugin will not work.
 
 The APCu management GUI is to be downloaded from:
-https://raw.githubusercontent.com/krakjoe/apcu/master/apc.php
+https://raw.githubusercontent.com/krakjoe/apcu/MOODLE_402_STABLE/apc.php
 
 The APCu management GUI is to be stored to:
 /tool/apcu/lib/apcu-gui/apcu.php.inc
@@ -178,5 +178,5 @@ Credits
 -------
 
 This Moodle plugin is only a simple wrapper for the APCu management GUI by Ralf Becker, Rasmus Lerdorf and Ilia Alshanetsky.      
-These three own all copyrights for the APCu management GUI and maintain this tool on https://github.com/krakjoe/apcu/blob/master/apc.php.
+These three own all copyrights for the APCu management GUI and maintain this tool on https://github.com/krakjoe/apcu/blob/MOODLE_402_STABLE/apc.php.
 This product includes PHP software, freely available from http://www.php.net/software/.
