@@ -4,6 +4,11 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2024-08-06 - Remove close button from notification banner and show the installer notifications in CLI as well, resolves #2.
+* 2024-08-06 - Move apc.php to Moodledata to ease using the plugin on Moodle instances with immutable / non-writeable Moodle codebases, resolves #4.
+
 ### v4.1-r2
 
 * 2023-10-14 - Add automated release to moodle.org/plugins
