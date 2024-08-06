@@ -33,11 +33,12 @@ require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/locallib.php');
  * @return bool result
  */
 function xmldb_tool_apcu_upgrade($oldversion) {
+    global $OUTPUT;
+
     // Verify the existence of the APCu GUI file.
     // This is done everytime the plugin is upgraded, i.e. there is no oldversion check and no savepoint set.
 
-    // If the APCu tool does not exist on disk.
-    // (This can especially happen when a new ZIP file from moodle.org/plugins has been placed on the server).
+    // If the APCu tool does not exist in MOODLEDATA.
     if (tool_apcu_verify_guidrop_file() != true) {
 
         // Try to re-download and store the APCu management GUI file.
@@ -54,9 +55,13 @@ function xmldb_tool_apcu_upgrade($oldversion) {
 
         // Output message.
         if ($guidropsuccessful == true) {
-            \core\notification::success($message);
+            $notification = new \core\output\notification($message, \core\output\notification::NOTIFY_SUCCESS);
+            $notification->set_show_closebutton(false);
+            echo $OUTPUT->render($notification);
         } else {
-            \core\notification::warning($message);
+            $notification = new \core\output\notification($message, \core\output\notification::NOTIFY_WARNING);
+            $notification->set_show_closebutton(false);
+            echo $OUTPUT->render($notification);
         }
 
         // Otherwise.
@@ -65,7 +70,9 @@ function xmldb_tool_apcu_upgrade($oldversion) {
         $message = get_string('guidropupgradechecksuccess', 'tool_apcu');
 
         // Output message.
-        \core\notification::success($message);
+        $notification = new \core\output\notification($message, \core\output\notification::NOTIFY_SUCCESS);
+        $notification->set_show_closebutton(false);
+        echo $OUTPUT->render($notification);
     }
 
     return true;

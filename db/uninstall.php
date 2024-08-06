@@ -15,16 +15,25 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin tool "APCu management" - APCu GUI configuration override file
- *
- * The APCu GUI code which we have placed into MOODLEDATA/tool_apcu/apcu.php.inc
- * is looking for a file called apc.conf.php and includes this file.
- * In this file, we can override the configuration of the APCu GUI.
+ * Admin tool "APCu management" - Uninstall file
  *
  * @package    tool_apcu
- * @copyright  2020 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
+ * @copyright  2024 Alexander Bias, lern.link GmbH <alexander.bias@lernlink.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Don't use APCu GUI authentication as we include this file into the Moodle capability checks.
-define('USE_AUTHENTICATION', 0);
+defined('MOODLE_INTERNAL') || die;
+
+require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/locallib.php');
+
+/**
+ * Function to uninstall tool_apcu.
+ *
+ * @return bool
+ */
+function xmldb_tool_apcu_uninstall() {
+    // Remove the APCu management GUI file.
+    tool_apcu_remove_guidrop_file();
+
+    return true;
+}

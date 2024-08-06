@@ -36,13 +36,13 @@ APCu management GUI file installation
 
 This plugin wraps the APCu management GUI which was built by the APCu developers. This APCu management GUI is just a small PHP file. Unfortunately, this file can't be shipped together with this plugin's code as its PHP license is incompatible with Moodle's GPL license.
 
-During installation, the plugin tries to download and store the APCu management GUI file to your wwwroot automatically. If this mechanism fails, especially because of the lack of permissions, you have to download the APCu management GUI file manually and store it to your webserver. Until you download and store this file, the plugin will not work.
+During installation, the plugin tries to download and store the APCu management GUI file to MOODLEDATA automatically. If this mechanism fails, you have to download and store the APCu management GUI file manually . Until you download and store this file, the plugin will not work.
 
 The APCu management GUI is to be downloaded from:
 https://raw.githubusercontent.com/krakjoe/apcu/MOODLE_403_STABLE/apc.php
 
 The APCu management GUI is to be stored to:
-/tool/apcu/lib/apcu-gui/apcu.php.inc
+MOODLEDATA/tool_apcu/apcu.php.inc
 
 
 Usage
@@ -71,11 +71,11 @@ This plugin works in a really simple way. It adds an admin tool page to Moodle's
 Security note
 -------------
 
-The APCu management GUI file is stored as a library to this Moodle plugin and is renamed to /lib/apcu-gui/apcu.php.inc.
+The APCu management GUI file is stored as a library to MOODLEDATA.
 
-There is a potential for sensitive data leak, not personal data but data about the webserver's PHP configuration, if your webserver is configured to interpret *.inc files as PHP. An anonymous user could then visit the library's index page directly via https://yourmoodle.com/admin/tool/apcu/lib/apcu-gui/apcu.php.inc and would see the APCu management GUI circumventing Moodle's access control.
+There is a potential for sensitive data leak, not personal data but data about the webserver's PHP configuration, if your webserver is configured to interpret *.inc files as PHP and if an attacker would find a way to execute this PHP file within the MOODLEDATA directory.
 
-Please make sure that your webserver does not interpret *.inc files as PHP (which should be the default) or take any other measure that this file can not be accessed directly by a browser.
+Please make sure that your webserver does not interpret *.inc files as PHP (which should be the default) and make sure that attackers cannot execute this file directly within MOODLEDATA.
 
 
 Theme support
