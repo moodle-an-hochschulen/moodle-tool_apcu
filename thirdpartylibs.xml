@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <libraries>
   <library>
-    <location>lib/apcu-gui</location>
+    <!-- location: This must be within a comment as it is not located within wwwroot: MOODLEDATA/tool_apcu/apcu.php.inc -->
     <name>APCu GUI</name>
     <license>PHP License</license>
     <version></version>

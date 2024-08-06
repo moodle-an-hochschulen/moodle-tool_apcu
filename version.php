@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tool_apcu';
-$plugin->version = 2023090100;
+$plugin->version = 2023090101;
 $plugin->release = 'v4.2-r1';
 $plugin->requires = 2023042400;
 $plugin->supported = [402, 402];
