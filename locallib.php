@@ -95,8 +95,19 @@ function tool_apcu_do_guidrop() {
     $targetdir = tool_apcu_get_guidrop_directory();
     $targetpath = tool_apcu_get_guidrop_path();
 
-    // If we would be unable to store the APCu GUI file, return.
-    if (is_dir($targetdir) != true || is_writable($targetdir) != true) {
+    // If the target directory does not exist yet.
+    if (is_dir($targetdir) != true) {
+        // Create it.
+        $retmakedir = make_writable_directory($targetdir);
+
+        // If something went wrong, return.
+        if ($retmakedir != true) {
+            return false;
+        }
+    }
+
+    // If we would be unable to store the APCu GUI file now, return.
+    if (is_writable($targetdir) != true) {
         return false;
     }
 
@@ -148,7 +159,7 @@ function tool_apcu_get_guidrop_directory() {
     global $CFG;
 
     // The directory where the APCu GUI file should be stored.
-    return $CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/lib/apcu-gui';
+    return $CFG->dataroot.'/tool_apcu';
 }
 
 /**
@@ -160,13 +171,13 @@ function tool_apcu_get_guidrop_path() {
     global $CFG;
 
     // The directory and filename where the APCu GUI file should be stored.
-    return $CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/lib/apcu-gui/apcu.php.inc';
+    return $CFG->dataroot.'/tool_apcu/apcu.php.inc';
 }
 
 /**
  * Helper function to verify if the APCu management GUI file exists and has the right content.
  *
- * @return string
+ * @return bool
  */
 function tool_apcu_verify_guidrop_file() {
     // Get the path where the file is expected.
@@ -189,4 +200,20 @@ function tool_apcu_verify_guidrop_file() {
 
     // If we have reached this point, the APCu GUI management file should be fine.
     return true;
+}
+
+/**
+ * Helper function to remove the APCu management GUI file.
+ *
+ * @return string
+ */
+function tool_apcu_remove_guidrop_file() {
+    // Get the directory where the file is expected.
+    $directory = tool_apcu_get_guidrop_directory();
+
+    // Remove the directory.
+    $ret = remove_dir($directory);
+
+    // Return the result of the removal.
+    return $ret;
 }

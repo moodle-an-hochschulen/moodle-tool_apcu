@@ -32,6 +32,8 @@ require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/locallib.php');
  * @return bool
  */
 function xmldb_tool_apcu_install() {
+    global $OUTPUT;
+
     // Install the APCu GUI file from the web - either automatically or manually.
 
     // Try to download and store APCu management GUI file.
@@ -49,9 +51,13 @@ function xmldb_tool_apcu_install() {
 
     // Output message.
     if ($guidropsuccessful == true) {
-        \core\notification::success($message);
+        $notification = new \core\output\notification($message, \core\output\notification::NOTIFY_SUCCESS);
+        $notification->set_show_closebutton(false);
+        echo $OUTPUT->render($notification);
     } else {
-        \core\notification::warning($message);
+        $notification = new \core\output\notification($message, \core\output\notification::NOTIFY_WARNING);
+        $notification->set_show_closebutton(false);
+        echo $OUTPUT->render($notification);
     }
 
     return true;

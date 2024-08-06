@@ -25,7 +25,7 @@
 require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/locallib.php');
-global $CFG;
+global $CFG, $FULLME;
 
 // Set up the plugin's main page as external admin page.
 admin_externalpage_setup('tool_apcu');
@@ -91,7 +91,21 @@ if (tool_apcu_verify_guidrop_file() == true) {
 
     // Otherwise.
 } else {
-    // Output message about missing APCu GUI file.
-    throw new \moodle_exception('guidropmissing', 'tool_apcu');
+    // Try to download and store APCu management GUI file on-the-fly.
+    $guidropsuccessful = tool_apcu_do_guidrop();
+
+    // If the download was successful.
+    if ($guidropsuccessful) {
+        // Add a notification to the stack.
+        core\notification::success(get_string('guidropmissingonthefly', 'tool_apcu'));
+
+        // Redirect to the same page again.
+        redirect($FULLME);
+
+        // Otherwise.
+    } else {
+        // Output message about missing APCu GUI file.
+        throw new \moodle_exception('guidropmissing', 'tool_apcu');
+    }
 }
 

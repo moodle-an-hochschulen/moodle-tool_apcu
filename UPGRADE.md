@@ -14,7 +14,7 @@ General
 Upstream changes
 ----------------
 
-* This plugin relies on the thiry-party apc.php file which is dropped manually or automatically into the plugin directory. This file is under active development. 
+* This plugin relies on the thiry-party apc.php file which is dropped manually or automatically into the MOODLEDATA/tool_apcu directory. This file is under active development.
 
 
 Automated tests
