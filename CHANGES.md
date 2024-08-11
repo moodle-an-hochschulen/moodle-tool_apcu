@@ -4,6 +4,10 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2024-08-11 - Updated Moodle Plugin CI to latest upstream recommendations
+
 ### v4.1-r3
 
 * 2024-08-06 - Remove close button from notification banner and show the installer notifications in CLI as well, resolves #2.
