@@ -39,7 +39,7 @@ This plugin wraps the APCu management GUI which was built by the APCu developers
 During installation, the plugin tries to download and store the APCu management GUI file to MOODLEDATA automatically. If this mechanism fails, you have to download and store the APCu management GUI file manually . Until you download and store this file, the plugin will not work.
 
 The APCu management GUI is to be downloaded from:
-https://raw.githubusercontent.com/krakjoe/apcu/MOODLE_403_STABLE/apc.php
+https://raw.githubusercontent.com/krakjoe/apcu/master/apc.php
 
 The APCu management GUI is to be stored to:
 MOODLEDATA/tool_apcu/apcu.php.inc
@@ -184,5 +184,5 @@ Credits
 -------
 
 This Moodle plugin is only a simple wrapper for the APCu management GUI by Ralf Becker, Rasmus Lerdorf and Ilia Alshanetsky.      
-These three own all copyrights for the APCu management GUI and maintain this tool on https://github.com/krakjoe/apcu/blob/MOODLE_403_STABLE/apc.php.
+These three own all copyrights for the APCu management GUI and maintain this tool on https://github.com/krakjoe/apcu/blob/master/apc.php.
 This product includes PHP software, freely available from http://www.php.net/software/.
