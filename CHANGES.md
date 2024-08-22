@@ -4,6 +4,10 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2024-08-20 - Prepare compatibility for Moodle 4.4.
+
 ### v4.3-r3
 
 * 2024-08-11 - Add section for scheduled tasks to README
