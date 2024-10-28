@@ -27,6 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 if ($hassiteconfig) {
     // Add the plugin's main page to the server settings category.
     $settingspage = new admin_externalpage('tool_apcu', new \core\lang_string('pluginname', 'tool_apcu'),
-                                           new moodle_url('/'.$CFG->admin.'/tool/apcu/index.php'), 'moodle/site:config');
+                                           new \core\url('/'.$CFG->admin.'/tool/apcu/index.php'), 'moodle/site:config');
     $ADMIN->add('server', $settingspage);
 }
