@@ -1,7 +1,7 @@
 moodle-tool_apcu
 ================
 
-[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-tool_apcu/actions/workflows/moodle-plugin-ci.yml/badge.svg?branch=main)](https://github.com/moodle-an-hochschulen/moodle-tool_apcu/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amain)
+[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-tool_apcu/actions/workflows/moodle-plugin-ci.yml/badge.svg?branch=MOODLE_500_STABLE)](https://github.com/moodle-an-hochschulen/moodle-tool_apcu/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3AMOODLE_500_STABLE)
 
 Moodle plugin which adds a PHP APCu management GUI to Moodle site administration.
 
