@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/locallib.php');
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/apcu/locallib.php');
 
 /**
  * Function to uninstall tool_apcu.

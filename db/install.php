@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/locallib.php');
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/apcu/locallib.php');
 
 /**
  * Function to install tool_apcu.
@@ -41,13 +41,13 @@ function xmldb_tool_apcu_install() {
 
     // Compose message.
     $messagepaths = ['source' => tool_apcu_get_guidrop_url(), 'target' => tool_apcu_get_guidrop_path()];
-    $message = '<p>'.get_string('guidropinstallintro', 'tool_apcu', $messagepaths).'</p>';
+    $message = '<p>' . get_string('guidropinstallintro', 'tool_apcu', $messagepaths) . '</p>';
     if ($guidropsuccessful == true) {
-        $message .= '<p>'.get_string('guidropsuccess', 'tool_apcu', $messagepaths).'</p>';
+        $message .= '<p>' . get_string('guidropsuccess', 'tool_apcu', $messagepaths) . '</p>';
     } else {
-        $message .= '<p>'.get_string('guidroperror', 'tool_apcu', $messagepaths).'</p>';
+        $message .= '<p>' . get_string('guidroperror', 'tool_apcu', $messagepaths) . '</p>';
     }
-    $message .= '<p>'.get_string('guidropinstalloutro', 'tool_apcu', $messagepaths).'</p>';
+    $message .= '<p>' . get_string('guidropinstalloutro', 'tool_apcu', $messagepaths) . '</p>';
 
     // Output message.
     if ($guidropsuccessful == true) {
