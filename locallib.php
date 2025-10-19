@@ -46,7 +46,7 @@ function tool_apcu_get_prefixed_css($css, $prefix) {
         } else {
             $partdetails = explode('{', $part);
             if (substr_count($part, "{") == 2) {
-                $mediaquery = $partdetails[0]."{";
+                $mediaquery = $partdetails[0] . "{";
                 $partdetails[0] = $partdetails[1];
                 $mediaquerystarted = true;
             }
@@ -61,13 +61,13 @@ function tool_apcu_get_prefixed_css($css, $prefix) {
             }
 
             if (substr_count($part, "{") == 2) {
-                $part = $mediaquery."\n".implode(', ', $subparts)."{".$partdetails[2];
+                $part = $mediaquery . "\n" . implode(', ', $subparts) . "{" . $partdetails[2];
             } else if (empty($part[0]) && $mediaquerystarted) {
                 $mediaquerystarted = false;
-                $part = implode(', ', $subparts)."{".$partdetails[2]."}\n";
+                $part = implode(', ', $subparts) . "{" . $partdetails[2] . "}\n";
             } else {
                 if (isset($partdetails[1])) {
-                    $part = implode(', ', $subparts)."{".$partdetails[1];
+                    $part = implode(', ', $subparts) . "{" . $partdetails[1];
                 }
             }
 
@@ -89,7 +89,7 @@ function tool_apcu_do_guidrop() {
     global $CFG;
 
     // Require Filelib for using cURL.
-    require_once($CFG->libdir.'/filelib.php');
+    require_once($CFG->libdir . '/filelib.php');
 
     // Get the target directory and path.
     $targetdir = tool_apcu_get_guidrop_directory();
@@ -112,9 +112,9 @@ function tool_apcu_do_guidrop() {
     }
 
     // Try to download the APCu GUI file.
-    $curl = new \curl;
+    $curl = new \curl();
     $downloadtmp = make_request_directory();
-    $downloadto = $downloadtmp.'/apcu.php.inc';
+    $downloadto = $downloadtmp . '/apcu.php.inc';
     $downloadoptions = ['filepath' => $downloadto, 'timeout' => 60, 'followlocation' => true, 'maxredirs' => 0];
     $downloadsuccess = $curl->download_one(tool_apcu_get_guidrop_url(), null, $downloadoptions);
 
@@ -159,7 +159,7 @@ function tool_apcu_get_guidrop_directory() {
     global $CFG;
 
     // The directory where the APCu GUI file should be stored.
-    return $CFG->dataroot.'/tool_apcu';
+    return $CFG->dataroot . '/tool_apcu';
 }
 
 /**
@@ -171,7 +171,7 @@ function tool_apcu_get_guidrop_path() {
     global $CFG;
 
     // The directory and filename where the APCu GUI file should be stored.
-    return $CFG->dataroot.'/tool_apcu/apcu.php.inc';
+    return $CFG->dataroot . '/tool_apcu/apcu.php.inc';
 }
 
 /**
@@ -184,17 +184,19 @@ function tool_apcu_verify_guidrop_file() {
     $targetpath = tool_apcu_get_guidrop_path();
 
     // If there isn't a readable file at the target path, return.
-    if (file_exists ($targetpath) != true || is_readable($targetpath) != true) {
+    if (file_exists($targetpath) != true || is_readable($targetpath) != true) {
         return false;
     }
 
     // If the file does not contain characteristic code snippets, return.
     $filestring = file_get_contents($targetpath);
-    if (strpos($filestring, 'Authors: Ralf Becker') === false ||
+    if (
+        strpos($filestring, 'Authors: Ralf Becker') === false ||
             strpos($filestring, 'General Cache Information') === false ||
             strpos($filestring, 'Cache Information') === false ||
             strpos($filestring, 'Runtime Settings') === false ||
-            strpos($filestring, 'Host Status Diagrams') === false) {
+            strpos($filestring, 'Host Status Diagrams') === false
+    ) {
         return false;
     }
 
