@@ -23,8 +23,8 @@
  */
 
 require(__DIR__ . '/../../../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/apcu/locallib.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/apcu/locallib.php');
 global $CFG, $FULLME;
 
 // Set up the plugin's main page as external admin page.
@@ -78,7 +78,7 @@ if (tool_apcu_verify_guidrop_file() == true) {
     $apcustylescode = tool_apcu_get_prefixed_css($apcustylescode, $cssprefix);
 
     // Add the APCu GUI styles to the page.
-    $CFG->additionalhtmlhead .= '<style>'.$apcustylescode.'</style>';
+    $CFG->additionalhtmlhead .= '<style>' . $apcustylescode . '</style>';
 
     // Page setup.
     echo $OUTPUT->header();
@@ -108,4 +108,3 @@ if (tool_apcu_verify_guidrop_file() == true) {
         throw new \moodle_exception('guidropmissing', 'tool_apcu');
     }
 }
-
