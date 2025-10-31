@@ -4,7 +4,7 @@ moodle-tool_apcu
 Changes
 -------
 
-### Unreleased
+### v4.5-r3
 
 * 2025-10-31 - Improvement: On CLI, do not add HTML tags to the plugin's installation messages, resolves #5
 
