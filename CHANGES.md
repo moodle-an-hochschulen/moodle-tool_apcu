@@ -4,6 +4,10 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2025-10-31 - Improvement: On CLI, do not add HTML tags to the plugin's installation messages, resolves #5
+
 ### v4.5-r2
 
 * 2025-10-15 - Make codechecker happy again
