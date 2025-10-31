@@ -41,21 +41,27 @@ function xmldb_tool_apcu_install() {
 
     // Compose message.
     $messagepaths = ['source' => tool_apcu_get_guidrop_url(), 'target' => tool_apcu_get_guidrop_path()];
-    $message = '<p>' . get_string('guidropinstallintro', 'tool_apcu', $messagepaths) . '</p>';
+    $message[] = get_string('guidropinstallintro', 'tool_apcu', $messagepaths);
     if ($guidropsuccessful == true) {
-        $message .= '<p>' . get_string('guidropsuccess', 'tool_apcu', $messagepaths) . '</p>';
+        $message[] = get_string('guidropsuccess', 'tool_apcu', $messagepaths);
     } else {
-        $message .= '<p>' . get_string('guidroperror', 'tool_apcu', $messagepaths) . '</p>';
+        $message[] = get_string('guidroperror', 'tool_apcu', $messagepaths);
     }
-    $message .= '<p>' . get_string('guidropinstalloutro', 'tool_apcu', $messagepaths) . '</p>';
+    $message[] = get_string('guidropinstalloutro', 'tool_apcu', $messagepaths);
+
+    if (CLI_SCRIPT) {
+        $messagetoutput = implode(PHP_EOL, $message);
+    } else {
+        $messagetoutput = implode('<br>', $message);
+    }
 
     // Output message.
     if ($guidropsuccessful == true) {
-        $notification = new \core\output\notification($message, \core\output\notification::NOTIFY_SUCCESS);
+        $notification = new \core\output\notification($messagetoutput, \core\output\notification::NOTIFY_SUCCESS);
         $notification->set_show_closebutton(false);
         echo $OUTPUT->render($notification);
     } else {
-        $notification = new \core\output\notification($message, \core\output\notification::NOTIFY_WARNING);
+        $notification = new \core\output\notification($messagetoutput, \core\output\notification::NOTIFY_WARNING);
         $notification->set_show_closebutton(false);
         echo $OUTPUT->render($notification);
     }
