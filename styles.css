@@ -5,3 +5,53 @@
     overflow-y: scroll;
     position: relative;
 }
+
+/* The APCu GUI is styled with fixed light colours only.
+   In the Boost dark colour mode, we re-point these colours to the Bootstrap custom properties which follow the colour mode. */
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.info,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.graph {
+    background-color: var(--bs-secondary-bg);
+    border-color: var(--bs-border-color);
+}
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.info h2,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.graph h2,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.info table th {
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-emphasis-color);
+}
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.info table,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.graph table {
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.info table tr.tr-0,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.graph table td.td-0 {
+    background-color: var(--bs-tertiary-bg);
+}
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.info table tr.tr-1,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.graph table td.td-1 {
+    background-color: var(--bs-body-bg);
+}
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.info a,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.info table th a.sortable,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.info table td h3 {
+    color: var(--bs-emphasis-color);
+}
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main .ok {
+    color: var(--bs-success-text-emphasis);
+}
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main .failed {
+    color: var(--bs-danger-text-emphasis);
+}
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main span.box {
+    border-color: var(--bs-emphasis-color);
+}
+
+/* The APCu GUI renders its diagrams as images with black lines and labels on a transparent background.
+   In the Boost dark colour mode, we invert them to get light lines and labels and turn the hues back to their original ones.
+   The legend colours get the same treatment to keep them matching the diagrams. */
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main div.graph img,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main span.green,
+[data-bs-theme="dark"] #page-admin-tool-apcu-index #region-main span.red {
+    filter: invert(1) hue-rotate(180deg);
+}

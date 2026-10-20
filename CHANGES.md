@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-10-20 - Upgrade: Adapt the APCu GUI colours to the Boost dark colour mode.
 * 2026-10-20 - Upgrade: Adopt changes from MDL-81935 and use new \core_admin\setting\tree\externalpage class.
 * 2026-10-05 - Prepare compatibility for Moodle 5.3.
 
