@@ -4,7 +4,7 @@ moodle-tool_apcu
 Changes
 -------
 
-### Unreleased
+### v5.3-r1
 
 * 2026-10-20 - Upgrade: Adapt the APCu GUI colours to the Boost dark colour mode.
 * 2026-10-20 - Upgrade: Adopt changes from MDL-81935 and use new \core_admin\setting\tree\externalpage class.
