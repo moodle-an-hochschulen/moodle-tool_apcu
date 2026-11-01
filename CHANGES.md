@@ -4,6 +4,10 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2026-11-01 - Improvement: Pin the APCu management GUI file download to a particular upstream commit and verify the file with a SHA-256 checksum before using it, including PHPUnit tests for this verification.
+
 ### v5.3-r1
 
 * 2026-10-20 - Upgrade: Adapt the APCu GUI colours to the Boost dark colour mode.
