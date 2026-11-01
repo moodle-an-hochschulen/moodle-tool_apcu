@@ -118,4 +118,65 @@ final class locallib_test extends \advanced_testcase {
         file_put_contents(tool_apcu_get_guidrop_path(), "\n// Modified.\n", FILE_APPEND);
         $this->assertFalse(tool_apcu_verify_guidrop_file());
     }
+
+    /**
+     * Test that the body HTML code and the styles code are extracted from the APCu GUI output.
+     *
+     * @covers ::tool_apcu_parse_gui_output
+     */
+    public function test_parse_gui_output(): void {
+        $output = "<html><head><style><!--\nbody { color: red; }\n//--></style></head>" .
+            "<body><div class=\"head\">APCu</div></body></html>";
+
+        $result = tool_apcu_parse_gui_output($output);
+
+        $this->assertStringStartsWith('<body>', $result['html']);
+        $this->assertStringContainsString('<div class="head">APCu</div>', $result['html']);
+        $this->assertStringContainsString('body { color: red; }', $result['css']);
+    }
+
+    /**
+     * Test that the APCu GUI output is still processed if it does not contain any style tag.
+     *
+     * @covers ::tool_apcu_parse_gui_output
+     */
+    public function test_parse_gui_output_without_style(): void {
+        $output = "<html><head></head><body><div class=\"head\">APCu</div></body></html>";
+
+        $result = tool_apcu_parse_gui_output($output);
+
+        $this->assertStringContainsString('<div class="head">APCu</div>', $result['html']);
+        $this->assertSame('', $result['css']);
+    }
+
+    /**
+     * Data provider for test_parse_gui_output_empty().
+     *
+     * @return array
+     */
+    public static function parse_gui_output_empty_provider(): array {
+        return [
+            'empty output' => [
+                'output' => '',
+            ],
+            'whitespace only output' => [
+                'output' => "  \n\t ",
+            ],
+        ];
+    }
+
+    /**
+     * Test that empty APCu GUI output is rejected with an exception.
+     *
+     * @dataProvider parse_gui_output_empty_provider
+     * @covers ::tool_apcu_parse_gui_output
+     *
+     * @param string $output The buffered APCu GUI output.
+     */
+    public function test_parse_gui_output_empty(string $output): void {
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage(get_string('guioutputinvalid', 'tool_apcu'));
+
+        tool_apcu_parse_gui_output($output);
+    }
 }

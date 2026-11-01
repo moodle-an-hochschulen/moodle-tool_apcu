@@ -48,26 +48,10 @@ if (tool_apcu_verify_guidrop_file() == true) {
     $output = ob_get_contents();
     ob_end_clean();
 
-    // Take control over libXML error handling as the APCu GUI HTML code is not perfect.
-    libxml_use_internal_errors(true);
-
-    // Process APCu GUI HTML code into a DOMDocument object.
-    $apcudoc = new DOMDocument();
-    $apcudoc->loadHTML($output);
-
-    // Process DOM and extract the body tag.
-    $apcubodytag = $apcudoc->getElementsByTagName('body')->item(0);
-    $apcuguihtml = $apcudoc->saveHTML($apcubodytag);
-
-    // Process DOM and extract the style tag.
-    $apcustyletag = $apcudoc->getElementsByTagName('style')->item(0);
-    $apcustylescode = $apcustyletag->nodeValue;
-
-    // Throw away any libXML errors which have been raised.
-    libxml_clear_errors();
-
-    // Finish control over libXML error handling.
-    libxml_use_internal_errors(false);
+    // Extract the body HTML code and the styles code from the APCu GUI HTML code.
+    $apcuguiparts = tool_apcu_parse_gui_output($output);
+    $apcuguihtml = $apcuguiparts['html'];
+    $apcustylescode = $apcuguiparts['css'];
 
     // Remove the HTML comments from the style code as they would interfere with the upcoming prefixing.
     $apcustylescode = str_replace('<!--', '', $apcustylescode);
