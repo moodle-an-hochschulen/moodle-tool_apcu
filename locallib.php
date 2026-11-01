@@ -23,6 +23,50 @@
  */
 
 /**
+ * Helper function to extract the body HTML code and the styles code from the buffered APCu management GUI output.
+ *
+ * @param string $output
+ *
+ * @return array An array with the keys 'html' and 'css'.
+ * @throws moodle_exception If the output is empty or does not contain a body tag.
+ */
+function tool_apcu_parse_gui_output($output) {
+    // If there is no output at all, we can't process it (and DOMDocument::loadHTML() would throw a ValueError).
+    if (trim($output) === '') {
+        throw new \moodle_exception('guioutputinvalid', 'tool_apcu');
+    }
+
+    // Take control over libXML error handling as the APCu GUI HTML code is not perfect.
+    $previouslibxmlerrors = libxml_use_internal_errors(true);
+
+    // Process APCu GUI HTML code into a DOMDocument object.
+    $apcudoc = new DOMDocument();
+    $apcudoc->loadHTML($output);
+
+    // Process DOM and extract the body tag.
+    $apcubodytag = $apcudoc->getElementsByTagName('body')->item(0);
+    $apcuguihtml = $apcubodytag !== null ? $apcudoc->saveHTML($apcubodytag) : '';
+
+    // Process DOM and extract the style tag.
+    // If there isn't any style tag, the APCu GUI is still usable, just without its own styles.
+    $apcustyletag = $apcudoc->getElementsByTagName('style')->item(0);
+    $apcustylescode = $apcustyletag !== null ? $apcustyletag->nodeValue : '';
+
+    // Throw away any libXML errors which have been raised.
+    libxml_clear_errors();
+
+    // Finish control over libXML error handling.
+    libxml_use_internal_errors($previouslibxmlerrors);
+
+    // If there is no body tag, the output is not the APCu GUI which we expect.
+    if ($apcuguihtml === '' || $apcuguihtml === false) {
+        throw new \moodle_exception('guioutputinvalid', 'tool_apcu');
+    }
+
+    return ['html' => $apcuguihtml, 'css' => $apcustylescode];
+}
+
+/**
  * Helper function to prefix given CSS code.
  *
  * @author Spooky
