@@ -123,6 +123,11 @@ function tool_apcu_do_guidrop() {
         return false;
     }
 
+    // If the downloaded APCu GUI file does not match the expected checksum, return.
+    if (tool_apcu_verify_guidrop_checksum($downloadto) != true) {
+        return false;
+    }
+
     // Try to move the APCu GUI file to the target directory.
     $renamesuccess = rename($downloadto, $targetpath);
 
@@ -131,7 +136,7 @@ function tool_apcu_do_guidrop() {
         return false;
     }
 
-    // If, in the end, the APCu GUI file isn't at the target path or does not contain the right content, return.
+    // If, in the end, the APCu GUI file isn't at the target path or does not match the expected checksum, return.
     if (tool_apcu_verify_guidrop_file() != true) {
         return false;
     }
@@ -147,7 +152,41 @@ function tool_apcu_do_guidrop() {
  */
 function tool_apcu_get_guidrop_url() {
     // The source where the APCu GUI file is downloaded from.
-    return 'https://raw.githubusercontent.com/krakjoe/apcu/master/apc.php';
+    // This is pinned to a particular upstream commit to make sure that the file matches the checksum below.
+    return 'https://raw.githubusercontent.com/krakjoe/apcu/e5132e4da010829c7359a6bda4dc985834ba2094/apc.php';
+}
+
+/**
+ * Helper function to get the expected SHA-256 checksum of the APCu management GUI file.
+ *
+ * @return string
+ */
+function tool_apcu_get_guidrop_checksum() {
+    // The SHA-256 checksum of the APCu GUI file at the upstream commit which is used in tool_apcu_get_guidrop_url().
+    return '3adfd4947ab9a9ada8f8d54059ac79e86c5c7ea218721923121a55b77b26d2b0';
+}
+
+/**
+ * Helper function to verify if the given file matches the expected checksum of the APCu management GUI file.
+ *
+ * @param string $filepath
+ *
+ * @return bool
+ */
+function tool_apcu_verify_guidrop_checksum($filepath) {
+    // If there isn't a readable file at the given path, return.
+    if (file_exists($filepath) != true || is_readable($filepath) != true) {
+        return false;
+    }
+
+    // If the checksum can't be calculated, return.
+    $checksum = hash_file('sha256', $filepath);
+    if ($checksum === false) {
+        return false;
+    }
+
+    // Compare the checksum with the expected checksum.
+    return hash_equals(tool_apcu_get_guidrop_checksum(), $checksum);
 }
 
 /**
@@ -175,7 +214,7 @@ function tool_apcu_get_guidrop_path() {
 }
 
 /**
- * Helper function to verify if the APCu management GUI file exists and has the right content.
+ * Helper function to verify if the APCu management GUI file exists and matches the expected checksum.
  *
  * @return bool
  */
@@ -183,20 +222,8 @@ function tool_apcu_verify_guidrop_file() {
     // Get the path where the file is expected.
     $targetpath = tool_apcu_get_guidrop_path();
 
-    // If there isn't a readable file at the target path, return.
-    if (file_exists($targetpath) != true || is_readable($targetpath) != true) {
-        return false;
-    }
-
-    // If the file does not contain characteristic code snippets, return.
-    $filestring = file_get_contents($targetpath);
-    if (
-        strpos($filestring, 'Authors: Ralf Becker') === false ||
-            strpos($filestring, 'General Cache Information') === false ||
-            strpos($filestring, 'Cache Information') === false ||
-            strpos($filestring, 'Runtime Settings') === false ||
-            strpos($filestring, 'Host Status Diagrams') === false
-    ) {
+    // If there isn't a readable file at the target path or if it does not match the expected checksum, return.
+    if (tool_apcu_verify_guidrop_checksum($targetpath) != true) {
         return false;
     }
 
