@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-11-01 - Improvement: Guard the processing of the APCu management GUI output against empty output and missing body or style tags, including PHPUnit tests for this processing.
 * 2026-11-01 - Improvement: Pin the APCu management GUI file download to a particular upstream commit and verify the file with a SHA-256 checksum before using it, including PHPUnit tests for this verification.
 
 ### v5.0-r3
