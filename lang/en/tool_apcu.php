@@ -32,5 +32,6 @@ $string['guidropmissingonthefly'] = 'This plugin was missing the APCu management
 $string['guidropsuccess'] = 'Luckily, this Moodle installation had enough permissions to download and store the APCu management GUI file to your MOODLEDATA directly. It was downloaded from {$a->source} and stored to {$a->target}. After finishing the installation wizard, the tool_apcu plugin will work for you as expected.';
 $string['guidropupgradecheckfail'] = 'The necessary APCu management GUI file is missing in the MOODLEDATA after the plugin upgrade.';
 $string['guidropupgradechecksuccess'] = 'The necessary APCu management GUI file still exists in the MOODLEDATA after the plugin upgrade.';
+$string['guioutputinvalid'] = 'The APCu management GUI file did not produce the expected output. Please check if the APCu management GUI file in your MOODLEDATA is intact and consult the plugin\'s README file for further assistance.';
 $string['pluginname'] = 'APCu management';
 $string['privacy:metadata'] = 'The APCu management plugin provides extended functionality to Moodle admins, but does not store any personal data.';
