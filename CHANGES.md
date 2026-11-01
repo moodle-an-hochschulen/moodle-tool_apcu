@@ -4,6 +4,10 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2026-11-01 - Improvement: Pin the APCu management GUI file download to a particular upstream commit and verify the file with a SHA-256 checksum before using it, including PHPUnit tests for this verification.
+
 ### v5.2-r1
 
 * 2026-04-20 - Prepare compatibility for Moodle 5.2.

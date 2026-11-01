@@ -39,10 +39,12 @@ This plugin wraps the APCu management GUI which was built by the APCu developers
 During installation, the plugin tries to download and store the APCu management GUI file to MOODLEDATA automatically. If this mechanism fails, you have to download and store the APCu management GUI file manually . Until you download and store this file, the plugin will not work.
 
 The APCu management GUI is to be downloaded from:
-https://raw.githubusercontent.com/krakjoe/apcu/master/apc.php
+https://raw.githubusercontent.com/krakjoe/apcu/e5132e4da010829c7359a6bda4dc985834ba2094/apc.php
 
 The APCu management GUI is to be stored to:
 MOODLEDATA/tool_apcu/apcu.php.inc
+
+Please note: The plugin verifies the APCu management GUI file with a SHA-256 checksum and only uses it if it exactly matches the file from the URL above. If you download the file manually, please make sure to use exactly this URL and to store the file without any modifications (e.g. without changing the line endings).
 
 
 Usage

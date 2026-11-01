@@ -14,7 +14,12 @@ General
 Upstream changes
 ----------------
 
-* This plugin relies on the thiry-party apc.php file which is dropped manually or automatically into the MOODLEDATA/tool_apcu directory. This file is under active development.
+* This plugin relies on the thiry-party apc.php file (https://github.com/krakjoe/apcu/commits/master/apc.php) which is dropped manually or automatically into the MOODLEDATA/tool_apcu directory. This file is under active development.
+* The download of the apc.php file is pinned to a particular upstream commit and verified with a SHA-256 checksum. With each plugin release, check if there are newer upstream commits which changed apc.php. If there are, test the new file with this plugin and bump the pinned version in all of these places:
+  * The commit hash in the download URL in tool_apcu_get_guidrop_url() in locallib.php
+  * The SHA-256 checksum in tool_apcu_get_guidrop_checksum() in locallib.php (e.g. computed with `curl -s <URL> | shasum -a 256`)
+  * The download URL in README.md
+  * The version (latest upstream release tag plus commit hash) in thirdpartylibs.xml
 
 
 Automated tests
