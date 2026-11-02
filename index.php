@@ -69,13 +69,14 @@ if (tool_apcu_verify_guidrop_file() == true) {
     // This way, the write operation is not repeated if the page is reloaded.
     // $MYREQUEST is set by the APCu GUI which we have just included in the global scope. It contains the request parameters
     // which the APCu GUI has validated and used, so we look at the same values which the APCu GUI has based its decision on.
-    $writeactions = tool_apcu_get_requested_write_actions($MYREQUEST ?? []);
+    // The APCu GUI's variables are accessed via $GLOBALS as their upper-case names do not comply with the Moodle coding style.
+    $writeactions = tool_apcu_get_requested_write_actions($GLOBALS['MYREQUEST'] ?? []);
     if (!empty($writeactions)) {
         $writeparams = tool_apcu_get_write_params();
         foreach ($writeactions as $param => $value) {
             // Check if the write operation was really performed.
             // $AUTHENTICATED is set by the APCu GUI as well and the APCu GUI performs write operations only if it is set.
-            $succeeded = !empty($AUTHENTICATED);
+            $succeeded = !empty($GLOBALS['AUTHENTICATED']);
             if ($param === 'DU') {
                 $succeeded = $succeeded && $entryexisted && function_exists('apcu_exists') && !apcu_exists($value);
             }
