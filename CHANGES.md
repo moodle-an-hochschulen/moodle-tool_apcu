@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-11-02 - Bugfix: Check all request sources for write operations of the APCu management GUI and add the sesskey to write operation links robustly, including PHPUnit tests.
 * 2026-11-02 - Bugfix: Detect a failed download of the APCu management GUI file correctly, including further PHPUnit tests for the locallib.php helper functions.
 * 2026-11-02 - Bugfix: Integrate the APCu management GUI into the page flow instead of showing it in a fixed-height box with its own vertical scrollbar.
 

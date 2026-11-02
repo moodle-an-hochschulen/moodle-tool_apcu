@@ -32,7 +32,8 @@ admin_externalpage_setup('tool_apcu');
 
 // If a write operation of the APCu GUI is requested, make sure that the request is not forged.
 // The APCu GUI's own authentication is disabled and would not protect against CSRF anyway.
-if (!empty(tool_apcu_get_requested_write_actions($_REQUEST))) {
+// The APCu GUI uses $_REQUEST, but rebuilds it from $_GET and $_POST if it is empty, so we check all of them.
+if (tool_apcu_is_write_request($_GET, $_POST, $_REQUEST)) {
     require_sesskey();
 }
 
@@ -67,8 +68,14 @@ if (tool_apcu_verify_guidrop_file() == true) {
         redirect(tool_apcu_get_redirect_url($MYREQUEST));
     }
 
+    // Parse the APCu GUI HTML code.
+    $apcudoc = tool_apcu_parse_gui_output($output);
+
+    // Protect the write operations of the APCu GUI with the sesskey.
+    tool_apcu_add_sesskey_to_write_links($apcudoc);
+
     // Extract the body HTML code and the styles code from the APCu GUI HTML code.
-    $apcuguiparts = tool_apcu_parse_gui_output($output);
+    $apcuguiparts = tool_apcu_extract_gui_parts($apcudoc);
     $apcuguihtml = $apcuguiparts['html'];
     $apcustylescode = $apcuguiparts['css'];
 
