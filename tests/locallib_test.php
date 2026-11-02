@@ -120,6 +120,140 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
+     * Data provider for test_do_guidrop_rejected_download().
+     *
+     * @return array
+     */
+    public static function do_guidrop_rejected_download_provider(): array {
+        return [
+            'download fails with an error message' => [
+                'response' => 'Could not resolve host: raw.githubusercontent.com',
+            ],
+            'download succeeds but the file does not match the checksum' => [
+                'response' => true,
+            ],
+        ];
+    }
+
+    /**
+     * Test that the APCu GUI file is not placed if the download fails or if the downloaded file does not match the checksum.
+     *
+     * @dataProvider do_guidrop_rejected_download_provider
+     * @covers ::tool_apcu_do_guidrop
+     *
+     * @param string|bool $response The mocked cURL response.
+     */
+    public function test_do_guidrop_rejected_download(string|bool $response): void {
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
+
+        // Place a known file at the target path.
+        make_writable_directory(tool_apcu_get_guidrop_directory());
+        file_put_contents(tool_apcu_get_guidrop_path(), 'Existing file');
+
+        // Mock the cURL response.
+        // A mocked response does not write anything to the download file, so a successful download results in an empty file.
+        \curl::mock_response($response);
+
+        $this->assertFalse(tool_apcu_do_guidrop());
+
+        // Verify that the existing file was not replaced.
+        $this->assertSame('Existing file', file_get_contents(tool_apcu_get_guidrop_path()));
+    }
+
+    /**
+     * Test that the APCu GUI file is stored in a directory of its own within the dataroot.
+     *
+     * @covers ::tool_apcu_get_guidrop_directory
+     * @covers ::tool_apcu_get_guidrop_path
+     */
+    public function test_get_guidrop_directory_and_path(): void {
+        global $CFG;
+
+        $this->assertSame($CFG->dataroot . '/tool_apcu', tool_apcu_get_guidrop_directory());
+        $this->assertSame(tool_apcu_get_guidrop_directory() . '/apcu.php.inc', tool_apcu_get_guidrop_path());
+    }
+
+    /**
+     * Test that the APCu GUI file is downloaded from a particular upstream commit and that there is a valid checksum for it.
+     *
+     * @covers ::tool_apcu_get_guidrop_url
+     * @covers ::tool_apcu_get_guidrop_checksum
+     */
+    public function test_get_guidrop_url_and_checksum(): void {
+        // The URL must be pinned to a commit hash and not to a branch like master, otherwise the checksum would break.
+        $this->assertMatchesRegularExpression(
+            '#^https://raw\.githubusercontent\.com/krakjoe/apcu/[0-9a-f]{40}/apc\.php$#',
+            tool_apcu_get_guidrop_url()
+        );
+
+        // The checksum must be a SHA-256 checksum.
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', tool_apcu_get_guidrop_checksum());
+    }
+
+    /**
+     * Test that the APCu GUI file is removed together with its directory.
+     *
+     * @covers ::tool_apcu_remove_guidrop_file
+     */
+    public function test_remove_guidrop_file(): void {
+        // Place a file at the target path.
+        make_writable_directory(tool_apcu_get_guidrop_directory());
+        file_put_contents(tool_apcu_get_guidrop_path(), 'Existing file');
+
+        $this->assertTrue(tool_apcu_remove_guidrop_file());
+        $this->assertFileDoesNotExist(tool_apcu_get_guidrop_path());
+        $this->assertDirectoryDoesNotExist(tool_apcu_get_guidrop_directory());
+    }
+
+    /**
+     * Data provider for test_get_prefixed_css().
+     *
+     * @return array
+     */
+    public static function get_prefixed_css_provider(): array {
+        return [
+            'empty code' => [
+                'css' => '',
+                'expected' => '',
+            ],
+            'single selector' => [
+                'css' => "div { color: red; }",
+                'expected' => '#apcu div{ color: red;} ',
+            ],
+            'multiple selectors' => [
+                'css' => "h1, h2 { margin: 0; }",
+                'expected' => '#apcu h1, #apcu h2{ margin: 0;} ',
+            ],
+            'comments are removed' => [
+                'css' => "/* Comment */\np { margin: 0; }",
+                'expected' => '#apcu p{ margin: 0;} ',
+            ],
+            'font-face is not prefixed' => [
+                'css' => "@font-face { font-family: foo; }",
+                'expected' => '@font-face { font-family: foo;} ',
+            ],
+            'media query' => [
+                'css' => "@media (max-width: 600px) {\n  div { color: red; }\n}\np { margin: 0; }",
+                'expected' => '@media (max-width: 600px) { #apcu div{ color: red;} } #apcu p{ margin: 0;} ',
+            ],
+        ];
+    }
+
+    /**
+     * Test that the given CSS code is prefixed.
+     *
+     * @dataProvider get_prefixed_css_provider
+     * @covers ::tool_apcu_get_prefixed_css
+     *
+     * @param string $css The CSS code.
+     * @param string $expected The expected prefixed CSS code.
+     */
+    public function test_get_prefixed_css(string $css, string $expected): void {
+        $this->assertSame($expected, tool_apcu_get_prefixed_css($css, '#apcu'));
+    }
+
+    /**
      * Test that the body HTML code and the styles code are extracted from the APCu GUI output.
      *
      * @covers ::tool_apcu_parse_gui_output
