@@ -268,7 +268,8 @@ function tool_apcu_do_guidrop() {
     $downloadsuccess = $curl->download_one(tool_apcu_get_guidrop_url(), null, $downloadoptions);
 
     // If the download was not successful, return.
-    if ($downloadsuccess != true) {
+    // On failure, cURL returns the error message as string, so we must compare strictly here.
+    if ($downloadsuccess !== true) {
         return false;
     }
 
@@ -383,7 +384,7 @@ function tool_apcu_verify_guidrop_file() {
 /**
  * Helper function to remove the APCu management GUI file.
  *
- * @return string
+ * @return bool
  */
 function tool_apcu_remove_guidrop_file() {
     // Get the directory where the file is expected.
