@@ -35,3 +35,5 @@ $string['guidropupgradechecksuccess'] = 'The necessary APCu management GUI file 
 $string['guioutputinvalid'] = 'The APCu management GUI file did not produce the expected output. Please check if the APCu management GUI file in your MOODLEDATA is intact and consult the plugin\'s README file for further assistance.';
 $string['pluginname'] = 'APCu management';
 $string['privacy:metadata'] = 'The APCu management plugin provides extended functionality to Moodle admins, but does not store any personal data.';
+$string['writeactioncachecleared'] = 'The APCu cache has been cleared.';
+$string['writeactionentrydeleted'] = 'The APCu cache entry "{$a}" has been deleted.';
