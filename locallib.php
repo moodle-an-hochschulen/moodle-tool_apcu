@@ -41,6 +41,27 @@ function tool_apcu_get_write_params() {
 }
 
 /**
+ * Helper function to check if any of the given request parameter sets requests a write operation of the APCu management GUI.
+ *
+ * @param array ...$requests The request parameter sets, e.g. $_GET, $_POST and $_REQUEST.
+ *
+ * @return bool
+ */
+function tool_apcu_is_write_request(array ...$requests) {
+    // Iterate over all given request parameter sets.
+    // Each set is checked on its own, as merging the sets could hide a write operation behind an empty value in another set.
+    foreach ($requests as $request) {
+        // If the set requests a write operation, return.
+        if (!empty(tool_apcu_get_requested_write_actions($request))) {
+            return true;
+        }
+    }
+
+    // If we have reached this point, no write operation is requested.
+    return false;
+}
+
+/**
  * Helper function to get the write operations of the APCu management GUI which are requested in the given request parameters.
  *
  * @param array $request The request parameters, e.g. $_REQUEST or the APCu management GUI's $MYREQUEST.
@@ -117,20 +138,25 @@ function tool_apcu_add_sesskey_to_write_links($doc) {
         // Parse the request parameters from the query string.
         parse_str($query, $params);
 
-        // If the link triggers a write operation, add the sesskey to the link target.
+        // If the link triggers a write operation, set the sesskey in the link target.
+        // The link target is rebuilt so that an existing sesskey is replaced and the fragment is kept at the end.
         if (!empty(tool_apcu_get_requested_write_actions($params))) {
-            $link->setAttribute('href', $href . '&sesskey=' . sesskey());
+            $params['sesskey'] = sesskey();
+            $path = substr($href, 0, strpos($href, '?'));
+            $fragment = parse_url($href, PHP_URL_FRAGMENT);
+            $link->setAttribute('href', $path . '?' . http_build_query($params, '', '&') .
+                    ($fragment !== null ? '#' . $fragment : ''));
         }
     }
 }
 
 /**
- * Helper function to extract the body HTML code and the styles code from the buffered APCu management GUI output.
+ * Helper function to parse the buffered APCu management GUI output into a DOM.
  *
  * @param string $output
  *
- * @return array An array with the keys 'html' and 'css'.
- * @throws moodle_exception If the output is empty or does not contain a body tag.
+ * @return DOMDocument
+ * @throws moodle_exception If the output is empty.
  */
 function tool_apcu_parse_gui_output($output) {
     // If there is no output at all, we can't process it (and DOMDocument::loadHTML() would throw a ValueError).
@@ -145,9 +171,24 @@ function tool_apcu_parse_gui_output($output) {
     $apcudoc = new DOMDocument();
     $apcudoc->loadHTML($output);
 
-    // Protect the write operations of the APCu GUI with the sesskey.
-    tool_apcu_add_sesskey_to_write_links($apcudoc);
+    // Throw away any libXML errors which have been raised.
+    libxml_clear_errors();
 
+    // Finish control over libXML error handling.
+    libxml_use_internal_errors($previouslibxmlerrors);
+
+    return $apcudoc;
+}
+
+/**
+ * Helper function to extract the body HTML code and the styles code from the parsed APCu management GUI output.
+ *
+ * @param DOMDocument $apcudoc
+ *
+ * @return array An array with the keys 'html' and 'css'.
+ * @throws moodle_exception If the output does not contain a body tag.
+ */
+function tool_apcu_extract_gui_parts($apcudoc) {
     // Process DOM and extract the body tag.
     $apcubodytag = $apcudoc->getElementsByTagName('body')->item(0);
     $apcuguihtml = $apcubodytag !== null ? $apcudoc->saveHTML($apcubodytag) : '';
@@ -156,12 +197,6 @@ function tool_apcu_parse_gui_output($output) {
     // If there isn't any style tag, the APCu GUI is still usable, just without its own styles.
     $apcustyletag = $apcudoc->getElementsByTagName('style')->item(0);
     $apcustylescode = $apcustyletag !== null ? $apcustyletag->nodeValue : '';
-
-    // Throw away any libXML errors which have been raised.
-    libxml_clear_errors();
-
-    // Finish control over libXML error handling.
-    libxml_use_internal_errors($previouslibxmlerrors);
 
     // If there is no body tag, the output is not the APCu GUI which we expect.
     if ($apcuguihtml === '' || $apcuguihtml === false) {
