@@ -416,9 +416,45 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
-     * Test that the redirect URL keeps the view parameters and drops the write operation parameters.
+     * Test that the request parameters are taken in the same way as the APCu GUI takes them.
+     *
+     * @covers ::tool_apcu_get_gui_request
+     */
+    public function test_get_gui_request(): void {
+        // Remember the superglobals to restore them afterwards.
+        $previousget = $_GET;
+        $previouspost = $_POST;
+        $previousrequest = $_REQUEST;
+
+        try {
+            // If $_REQUEST is filled, it is used as it is.
+            $_GET = ['OB' => '1'];
+            $_POST = ['OB' => '2'];
+            $_REQUEST = ['OB' => '3'];
+            $this->assertSame(['OB' => '3'], tool_apcu_get_gui_request());
+
+            // If $_REQUEST is empty, $_GET and $_POST are used with $_POST taking precedence.
+            $_GET = ['OB' => '1', 'SEARCH' => 'foo'];
+            $_POST = ['OB' => '2'];
+            $_REQUEST = [];
+            $this->assertSame(['OB' => '2', 'SEARCH' => 'foo'], tool_apcu_get_gui_request());
+
+            // If everything is empty, the result is empty as well.
+            $_GET = [];
+            $_POST = [];
+            $this->assertSame([], tool_apcu_get_gui_request());
+        } finally {
+            $_GET = $previousget;
+            $_POST = $previouspost;
+            $_REQUEST = $previousrequest;
+        }
+    }
+
+    /**
+     * Test that the redirect URL keeps the view parameters and drops all other parameters.
      *
      * @covers ::tool_apcu_get_redirect_url
+     * @covers ::tool_apcu_get_view_params
      */
     public function test_get_redirect_url(): void {
         $request = [
@@ -426,13 +462,17 @@ final class locallib_test extends \advanced_testcase {
             'CC' => '1',
             'DU' => 'core_foo/bar',
             'SH' => null,
-            'IMG' => null,
-            'LO' => null,
+            'IMG' => '1',
+            'LO' => '1',
             'COUNT' => '20',
             'SCOPE' => 'A',
             'SORT1' => 'H',
             'SORT2' => 'D',
+            'AGGR' => '',
             'SEARCH' => 'core_foo',
+            'SEARCH_REGEX' => '/core_foo/i',
+            'sesskey' => 'abc',
+            'foo' => 'bar',
         ];
 
         $url = tool_apcu_get_redirect_url($request);
