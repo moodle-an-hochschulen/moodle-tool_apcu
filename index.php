@@ -30,6 +30,12 @@ global $CFG, $FULLME;
 // Set up the plugin's main page as external admin page.
 admin_externalpage_setup('tool_apcu');
 
+// If a write operation of the APCu GUI is requested, make sure that the request is not forged.
+// The APCu GUI's own authentication is disabled and would not protect against CSRF anyway.
+if (!empty(tool_apcu_get_requested_write_actions($_REQUEST))) {
+    require_sesskey();
+}
+
 // Check if the APCu tool exists on disk so that we can require it.
 if (tool_apcu_verify_guidrop_file() == true) {
     // Page setup.
@@ -47,6 +53,19 @@ if (tool_apcu_verify_guidrop_file() == true) {
     // Get buffered content and finish buffering.
     $output = ob_get_contents();
     ob_end_clean();
+
+    // If the APCu GUI has performed a write operation, redirect to the same view without the write operation parameters.
+    // This way, the write operation is not repeated if the page is reloaded.
+    // $MYREQUEST is set by the APCu GUI which we have just included in the global scope. It contains the request parameters
+    // which the APCu GUI has validated and used, so we look at the same values which the APCu GUI has based its decision on.
+    $writeactions = tool_apcu_get_requested_write_actions($MYREQUEST ?? []);
+    if (!empty($writeactions)) {
+        $writeparams = tool_apcu_get_write_params();
+        foreach ($writeactions as $param => $value) {
+            core\notification::success(get_string($writeparams[$param], 'tool_apcu', s($value)));
+        }
+        redirect(tool_apcu_get_redirect_url($MYREQUEST));
+    }
 
     // Extract the body HTML code and the styles code from the APCu GUI HTML code.
     $apcuguiparts = tool_apcu_parse_gui_output($output);
