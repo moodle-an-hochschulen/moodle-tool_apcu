@@ -179,4 +179,118 @@ final class locallib_test extends \advanced_testcase {
 
         tool_apcu_parse_gui_output($output);
     }
+
+    /**
+     * Data provider for test_get_requested_write_actions().
+     *
+     * @return array
+     */
+    public static function get_requested_write_actions_provider(): array {
+        return [
+            'no parameters' => [
+                'request' => [],
+                'expected' => [],
+            ],
+            'read-only parameters only' => [
+                'request' => ['OB' => '2', 'SCOPE' => 'A', 'SORT1' => 'H', 'SEARCH' => 'foo'],
+                'expected' => [],
+            ],
+            'clear cache' => [
+                'request' => ['OB' => '1', 'CC' => '1'],
+                'expected' => ['CC' => '1'],
+            ],
+            'clear cache with zero value' => [
+                'request' => ['CC' => '0'],
+                'expected' => [],
+            ],
+            'delete user cache entry' => [
+                'request' => ['OB' => '2', 'DU' => 'core_foo/bar'],
+                'expected' => ['DU' => 'core_foo/bar'],
+            ],
+            'array value' => [
+                'request' => ['CC' => ['1']],
+                'expected' => [],
+            ],
+            'null values as set by the APCu GUI' => [
+                'request' => ['CC' => null, 'DU' => null, 'OB' => '1'],
+                'expected' => [],
+            ],
+        ];
+    }
+
+    /**
+     * Test that the requested write operations are detected in the request parameters.
+     *
+     * @dataProvider get_requested_write_actions_provider
+     * @covers ::tool_apcu_get_requested_write_actions
+     * @covers ::tool_apcu_get_write_params
+     *
+     * @param array $request The request parameters.
+     * @param array $expected The expected write operations.
+     */
+    public function test_get_requested_write_actions(array $request, array $expected): void {
+        $this->assertSame($expected, tool_apcu_get_requested_write_actions($request));
+    }
+
+    /**
+     * Test that the redirect URL keeps the view parameters and drops the write operation parameters.
+     *
+     * @covers ::tool_apcu_get_redirect_url
+     */
+    public function test_get_redirect_url(): void {
+        $request = [
+            'OB' => '2',
+            'CC' => '1',
+            'DU' => 'core_foo/bar',
+            'SH' => null,
+            'IMG' => null,
+            'LO' => null,
+            'COUNT' => '20',
+            'SCOPE' => 'A',
+            'SORT1' => 'H',
+            'SORT2' => 'D',
+            'SEARCH' => 'core_foo',
+        ];
+
+        $url = tool_apcu_get_redirect_url($request);
+
+        $this->assertSame((new \moodle_url('/admin/tool/apcu/index.php'))->out(false), $url->out_omit_querystring());
+        $this->assertSame(
+            ['OB' => '2', 'COUNT' => '20', 'SCOPE' => 'A', 'SORT1' => 'H', 'SORT2' => 'D', 'SEARCH' => 'core_foo'],
+            $url->params()
+        );
+    }
+
+    /**
+     * Test that the sesskey is added to the links which trigger write operations and only to them.
+     *
+     * @covers ::tool_apcu_parse_gui_output
+     * @covers ::tool_apcu_add_sesskey_to_write_links
+     */
+    public function test_parse_gui_output_adds_sesskey_to_write_links(): void {
+        $output = "<html><head></head><body><ol class=menu>" .
+            "<li><a href=\"/admin/tool/apcu/index.php?SCOPE=A&SORT1=H&OB=1&SH=\">Refresh Data</a></li>" .
+            "<li><a href=\"/admin/tool/apcu/index.php?SCOPE=A&SORT1=H&OB=2\">User Cache Entries</a></li>" .
+            "<li><a class=\"aright\" href=\"/admin/tool/apcu/index.php?SCOPE=A&SORT1=H&CC=1&OB=1\">Clear Cache</a></li>" .
+            "</ol>" .
+            "<a href=\"/admin/tool/apcu/index.php?SCOPE=A&OB=2&DU=core_foo%2Fbar&SEARCH=core_foo\">Delete Now</a>" .
+            "<a href=\"#key-1\">Anchor</a>" .
+            "</body></html>";
+
+        $result = tool_apcu_parse_gui_output($output);
+
+        // Parse the links from the resulting HTML code again.
+        $doc = new \DOMDocument();
+        $doc->loadHTML($result['html']);
+        $hrefs = [];
+        foreach ($doc->getElementsByTagName('a') as $link) {
+            $hrefs[$link->textContent] = $link->getAttribute('href');
+        }
+
+        $this->assertStringEndsWith('&CC=1&OB=1&sesskey=' . sesskey(), $hrefs['Clear Cache']);
+        $this->assertStringEndsWith('&SEARCH=core_foo&sesskey=' . sesskey(), $hrefs['Delete Now']);
+        $this->assertStringNotContainsString('sesskey', $hrefs['Refresh Data']);
+        $this->assertStringNotContainsString('sesskey', $hrefs['User Cache Entries']);
+        $this->assertSame('#key-1', $hrefs['Anchor']);
+    }
 }
