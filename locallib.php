@@ -19,8 +19,225 @@
  *
  * @package    tool_apcu
  * @copyright  2020 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
+ * @copyright  2026 Alexander Bias <bias@alexanderbias.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+/**
+ * Helper function to get the request parameters which trigger write operations in the APCu management GUI.
+ *
+ * These write operations are protected with a sesskey check by this plugin.
+ * With each update of the APCu management GUI file, check if there are new write operations which have to be added here.
+ *
+ * @return array The request parameters as keys and the language string keys of the messages which are shown after the
+ *               write operation as values. For each parameter, there is a message for success and a message for failure.
+ *               The parameter's value is passed to the language strings.
+ */
+function tool_apcu_get_write_params() {
+    // The request parameters of the APCu GUI which trigger write operations and the language strings for their messages.
+    return [
+        // Clear cache.
+        'CC' => ['success' => 'writeactioncachecleared', 'failure' => 'writeactioncachenotcleared'],
+        // Delete user cache entry.
+        'DU' => ['success' => 'writeactionentrydeleted', 'failure' => 'writeactionentrynotdeleted'],
+    ];
+}
+
+/**
+ * Helper function to get the request parameters which define the current view of the APCu management GUI.
+ *
+ * These parameters are kept when redirecting after a write operation.
+ * With each update of the APCu management GUI file, check if there are new view parameters which have to be added here.
+ *
+ * @return array
+ */
+function tool_apcu_get_view_params() {
+    // The request parameters of the APCu GUI which define the view (and do not trigger any write operation or image output).
+    return ['OB', 'SH', 'COUNT', 'SCOPE', 'SORT1', 'SORT2', 'AGGR', 'SEARCH'];
+}
+
+/**
+ * Helper function to get the request parameters in the same way as the APCu management GUI gets them.
+ *
+ * The APCu GUI uses $_REQUEST, but rebuilds it from $_GET and $_POST if it is empty.
+ *
+ * @return array
+ */
+function tool_apcu_get_gui_request() {
+    // If $_REQUEST is filled, the APCu GUI uses it as it is.
+    if (!empty($_REQUEST)) {
+        return $_REQUEST;
+    }
+
+    // Otherwise, the APCu GUI uses $_GET and $_POST with $_POST taking precedence.
+    return array_merge($_GET, $_POST);
+}
+
+/**
+ * Helper function to check if any of the given request parameter sets requests a write operation of the APCu management GUI.
+ *
+ * @param array ...$requests The request parameter sets, e.g. $_GET, $_POST and $_REQUEST.
+ *
+ * @return bool
+ */
+function tool_apcu_is_write_request(array ...$requests) {
+    // Iterate over all given request parameter sets.
+    // Each set is checked on its own, as merging the sets could hide a write operation behind an empty value in another set.
+    foreach ($requests as $request) {
+        // If the set requests a write operation, return.
+        if (!empty(tool_apcu_get_requested_write_actions($request))) {
+            return true;
+        }
+    }
+
+    // If we have reached this point, no write operation is requested.
+    return false;
+}
+
+/**
+ * Helper function to get the write operations of the APCu management GUI which are requested in the given request parameters.
+ *
+ * @param array $request The request parameters, e.g. $_REQUEST or the APCu management GUI's $MYREQUEST.
+ *
+ * @return array The requested write operation parameters with their values.
+ */
+function tool_apcu_get_requested_write_actions($request) {
+    // Initialize the list of requested write operations.
+    $actions = [];
+
+    // Iterate over all request parameters which trigger write operations.
+    foreach (array_keys(tool_apcu_get_write_params()) as $param) {
+        // If the parameter is given with a usable value, remember it as requested write operation.
+        // The APCu GUI ignores empty values (like CC=0) and array values, so we do the same.
+        if (!empty($request[$param]) && !is_array($request[$param])) {
+            $actions[$param] = $request[$param];
+        }
+    }
+
+    // Return the list of requested write operations.
+    return $actions;
+}
+
+/**
+ * Helper function to get the URL to redirect to after the APCu management GUI performed a write operation.
+ *
+ * The URL keeps the current view of the APCu management GUI, but drops all other parameters like the write operation
+ * parameters, so that the write operation is not repeated if the page is reloaded.
+ *
+ * Please note that the request parameters must be taken before the APCu GUI is included.
+ * The APCu GUI's $MYREQUEST must not be used here as the APCu GUI modifies it while rendering (e.g. it toggles SORT2 when
+ * rendering the sortable table headers and it adds SEARCH_REGEX).
+ *
+ * @param array $request The request parameters, as returned by tool_apcu_get_gui_request().
+ *
+ * @return moodle_url
+ */
+function tool_apcu_get_redirect_url($request) {
+    // Initialize the list of request parameters to be kept.
+    $params = [];
+
+    // Iterate over all view parameters.
+    foreach (tool_apcu_get_view_params() as $name) {
+        // If the parameter is not given or if it does not have a usable value, skip it.
+        if (!isset($request[$name]) || $request[$name] === '' || is_array($request[$name])) {
+            continue;
+        }
+
+        // Otherwise, keep the parameter.
+        $params[$name] = $request[$name];
+    }
+
+    // Return the URL of the plugin's main page with the kept request parameters.
+    return new moodle_url('/admin/tool/apcu/index.php', $params);
+}
+
+/**
+ * Helper function to add the sesskey to all links in the given DOM which trigger write operations in the APCu management GUI.
+ *
+ * @param DOMDocument $doc
+ */
+function tool_apcu_add_sesskey_to_write_links($doc) {
+    // Iterate over all links in the DOM.
+    foreach ($doc->getElementsByTagName('a') as $link) {
+        // Get the link target and its query string.
+        $href = $link->getAttribute('href');
+        $query = parse_url($href, PHP_URL_QUERY);
+
+        // If the link target does not have a query string, it can't trigger any write operation, skip it.
+        if (empty($query)) {
+            continue;
+        }
+
+        // Parse the request parameters from the query string.
+        parse_str($query, $params);
+
+        // If the link triggers a write operation, set the sesskey in the link target.
+        // The link target is rebuilt so that an existing sesskey is replaced and the fragment is kept at the end.
+        if (!empty(tool_apcu_get_requested_write_actions($params))) {
+            $params['sesskey'] = sesskey();
+            $path = substr($href, 0, strpos($href, '?'));
+            $fragment = parse_url($href, PHP_URL_FRAGMENT);
+            $link->setAttribute('href', $path . '?' . http_build_query($params, '', '&') .
+                    ($fragment !== null ? '#' . $fragment : ''));
+        }
+    }
+}
+
+/**
+ * Helper function to parse the buffered APCu management GUI output into a DOM.
+ *
+ * @param string $output
+ *
+ * @return DOMDocument
+ * @throws moodle_exception If the output is empty.
+ */
+function tool_apcu_parse_gui_output($output) {
+    // If there is no output at all, we can't process it (and DOMDocument::loadHTML() would throw a ValueError).
+    if (trim($output) === '') {
+        throw new \moodle_exception('guioutputinvalid', 'tool_apcu');
+    }
+
+    // Take control over libXML error handling as the APCu GUI HTML code is not perfect.
+    $previouslibxmlerrors = libxml_use_internal_errors(true);
+
+    // Process APCu GUI HTML code into a DOMDocument object.
+    $apcudoc = new DOMDocument();
+    $apcudoc->loadHTML($output);
+
+    // Throw away any libXML errors which have been raised.
+    libxml_clear_errors();
+
+    // Finish control over libXML error handling.
+    libxml_use_internal_errors($previouslibxmlerrors);
+
+    return $apcudoc;
+}
+
+/**
+ * Helper function to extract the body HTML code and the styles code from the parsed APCu management GUI output.
+ *
+ * @param DOMDocument $apcudoc
+ *
+ * @return array An array with the keys 'html' and 'css'.
+ * @throws moodle_exception If the output does not contain a body tag.
+ */
+function tool_apcu_extract_gui_parts($apcudoc) {
+    // Process DOM and extract the body tag.
+    $apcubodytag = $apcudoc->getElementsByTagName('body')->item(0);
+    $apcuguihtml = $apcubodytag !== null ? $apcudoc->saveHTML($apcubodytag) : '';
+
+    // Process DOM and extract the style tag.
+    // If there isn't any style tag, the APCu GUI is still usable, just without its own styles.
+    $apcustyletag = $apcudoc->getElementsByTagName('style')->item(0);
+    $apcustylescode = $apcustyletag !== null ? $apcustyletag->nodeValue : '';
+
+    // If there is no body tag, the output is not the APCu GUI which we expect.
+    if ($apcuguihtml === '' || $apcuguihtml === false) {
+        throw new \moodle_exception('guioutputinvalid', 'tool_apcu');
+    }
+
+    return ['html' => $apcuguihtml, 'css' => $apcustylescode];
+}
 
 /**
  * Helper function to prefix given CSS code.
@@ -119,7 +336,13 @@ function tool_apcu_do_guidrop() {
     $downloadsuccess = $curl->download_one(tool_apcu_get_guidrop_url(), null, $downloadoptions);
 
     // If the download was not successful, return.
-    if ($downloadsuccess != true) {
+    // On failure, cURL returns the error message as string, so we must compare strictly here.
+    if ($downloadsuccess !== true) {
+        return false;
+    }
+
+    // If the downloaded APCu GUI file does not match the expected checksum, return.
+    if (tool_apcu_verify_guidrop_checksum($downloadto) != true) {
         return false;
     }
 
@@ -131,7 +354,7 @@ function tool_apcu_do_guidrop() {
         return false;
     }
 
-    // If, in the end, the APCu GUI file isn't at the target path or does not contain the right content, return.
+    // If, in the end, the APCu GUI file isn't at the target path or does not match the expected checksum, return.
     if (tool_apcu_verify_guidrop_file() != true) {
         return false;
     }
@@ -147,7 +370,41 @@ function tool_apcu_do_guidrop() {
  */
 function tool_apcu_get_guidrop_url() {
     // The source where the APCu GUI file is downloaded from.
-    return 'https://raw.githubusercontent.com/krakjoe/apcu/master/apc.php';
+    // This is pinned to a particular upstream commit to make sure that the file matches the checksum below.
+    return 'https://raw.githubusercontent.com/krakjoe/apcu/e5132e4da010829c7359a6bda4dc985834ba2094/apc.php';
+}
+
+/**
+ * Helper function to get the expected SHA-256 checksum of the APCu management GUI file.
+ *
+ * @return string
+ */
+function tool_apcu_get_guidrop_checksum() {
+    // The SHA-256 checksum of the APCu GUI file at the upstream commit which is used in tool_apcu_get_guidrop_url().
+    return '3adfd4947ab9a9ada8f8d54059ac79e86c5c7ea218721923121a55b77b26d2b0';
+}
+
+/**
+ * Helper function to verify if the given file matches the expected checksum of the APCu management GUI file.
+ *
+ * @param string $filepath
+ *
+ * @return bool
+ */
+function tool_apcu_verify_guidrop_checksum($filepath) {
+    // If there isn't a readable file at the given path, return.
+    if (file_exists($filepath) != true || is_readable($filepath) != true) {
+        return false;
+    }
+
+    // If the checksum can't be calculated, return.
+    $checksum = hash_file('sha256', $filepath);
+    if ($checksum === false) {
+        return false;
+    }
+
+    // Compare the checksum with the expected checksum.
+    return hash_equals(tool_apcu_get_guidrop_checksum(), $checksum);
 }
 
 /**
@@ -175,7 +432,7 @@ function tool_apcu_get_guidrop_path() {
 }
 
 /**
- * Helper function to verify if the APCu management GUI file exists and has the right content.
+ * Helper function to verify if the APCu management GUI file exists and matches the expected checksum.
  *
  * @return bool
  */
@@ -183,20 +440,8 @@ function tool_apcu_verify_guidrop_file() {
     // Get the path where the file is expected.
     $targetpath = tool_apcu_get_guidrop_path();
 
-    // If there isn't a readable file at the target path, return.
-    if (file_exists($targetpath) != true || is_readable($targetpath) != true) {
-        return false;
-    }
-
-    // If the file does not contain characteristic code snippets, return.
-    $filestring = file_get_contents($targetpath);
-    if (
-        strpos($filestring, 'Authors: Ralf Becker') === false ||
-            strpos($filestring, 'General Cache Information') === false ||
-            strpos($filestring, 'Cache Information') === false ||
-            strpos($filestring, 'Runtime Settings') === false ||
-            strpos($filestring, 'Host Status Diagrams') === false
-    ) {
+    // If there isn't a readable file at the target path or if it does not match the expected checksum, return.
+    if (tool_apcu_verify_guidrop_checksum($targetpath) != true) {
         return false;
     }
 
@@ -207,7 +452,7 @@ function tool_apcu_verify_guidrop_file() {
 /**
  * Helper function to remove the APCu management GUI file.
  *
- * @return string
+ * @return bool
  */
 function tool_apcu_remove_guidrop_file() {
     // Get the directory where the file is expected.
