@@ -85,6 +85,8 @@ There is a potential for sensitive data leak, not personal data but data about t
 
 Please make sure that your webserver does not interpret *.inc files as PHP (which should be the default) and make sure that attackers cannot execute this file directly within MOODLEDATA.
 
+The APCu management GUI's own authentication is disabled by this plugin as access to the APCu management GUI is controlled by Moodle's capability checks. Additionally, the write operations of the APCu management GUI (clearing the cache and deleting user cache entries) are protected against cross-site request forgery with Moodle's sesskey.
+
 
 Theme support
 -------------
