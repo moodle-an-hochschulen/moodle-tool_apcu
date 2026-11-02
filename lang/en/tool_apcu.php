@@ -36,4 +36,6 @@ $string['guioutputinvalid'] = 'The APCu management GUI file did not produce the 
 $string['pluginname'] = 'APCu management';
 $string['privacy:metadata'] = 'The APCu management plugin provides extended functionality to Moodle admins, but does not store any personal data.';
 $string['writeactioncachecleared'] = 'The APCu cache has been cleared.';
+$string['writeactioncachenotcleared'] = 'The APCu cache could not be cleared.';
 $string['writeactionentrydeleted'] = 'The APCu cache entry "{$a}" has been deleted.';
+$string['writeactionentrynotdeleted'] = 'The APCu cache entry "{$a}" could not be deleted. Maybe it did not exist (anymore).';
