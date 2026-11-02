@@ -44,6 +44,16 @@ if (tool_apcu_verify_guidrop_file() == true) {
     $PAGE->set_title($title);
     $PAGE->set_heading($title);
 
+    // Remember the request parameters as the APCu GUI gets them, before the APCu GUI is included and modifies them.
+    $guirequest = tool_apcu_get_gui_request();
+
+    // If the deletion of a user cache entry is requested, remember if the entry exists before the APCu GUI deletes it.
+    // This way, we can report afterwards if the entry was really deleted.
+    $requestedwriteactions = tool_apcu_get_requested_write_actions($guirequest);
+    // If APCu is not available at all, the APCu GUI shows an error message itself, so we must not call any APCu function here.
+    $entryexisted = isset($requestedwriteactions['DU']) && function_exists('apcu_exists') &&
+            apcu_exists($requestedwriteactions['DU']);
+
     // Output has to be buffered because we want to modify the APCu GUI HTML code and as the APCu GUI sends some HTTP headers.
     ob_start();
 
@@ -63,9 +73,21 @@ if (tool_apcu_verify_guidrop_file() == true) {
     if (!empty($writeactions)) {
         $writeparams = tool_apcu_get_write_params();
         foreach ($writeactions as $param => $value) {
-            core\notification::success(get_string($writeparams[$param], 'tool_apcu', s($value)));
+            // Check if the write operation was really performed.
+            // $AUTHENTICATED is set by the APCu GUI as well and the APCu GUI performs write operations only if it is set.
+            $succeeded = !empty($AUTHENTICATED);
+            if ($param === 'DU') {
+                $succeeded = $succeeded && $entryexisted && function_exists('apcu_exists') && !apcu_exists($value);
+            }
+
+            // Add a notification about the write operation to the stack.
+            if ($succeeded) {
+                core\notification::success(get_string($writeparams[$param]['success'], 'tool_apcu', s($value)));
+            } else {
+                core\notification::error(get_string($writeparams[$param]['failure'], 'tool_apcu', s($value)));
+            }
         }
-        redirect(tool_apcu_get_redirect_url($MYREQUEST));
+        redirect(tool_apcu_get_redirect_url($guirequest));
     }
 
     // Parse the APCu GUI HTML code.
