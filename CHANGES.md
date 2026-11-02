@@ -6,6 +6,8 @@ Changes
 
 ### Unreleased
 
+* 2026-11-02 - Bugfix: Integrate the APCu management GUI into the page flow instead of showing it in a fixed-height box with its own vertical scrollbar.
+
 * 2026-11-01 - Improvement: Protect the write operations of the APCu management GUI (clearing the cache and deleting user cache entries) against cross-site request forgery with a sesskey check and redirect after these write operations, including PHPUnit and Behat tests.
 * 2026-11-01 - Improvement: Guard the processing of the APCu management GUI output against empty output and missing body or style tags, including PHPUnit tests for this processing.
 * 2026-11-01 - Improvement: Pin the APCu management GUI file download to a particular upstream commit and verify the file with a SHA-256 checksum before using it, including PHPUnit tests for this verification.

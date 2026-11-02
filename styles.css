@@ -1,9 +1,15 @@
-/* The APCu GUI works with position: absolute.
-   We have to work around this in a rather ugly way when we want to integrate the APCu GUI into the Moodle page. */
+/* The APCu GUI places its content container with position: absolute which takes it out of the page flow.
+   We put the content container back into the page flow so that the Moodle page grows with the APCu GUI.
+   The content container stays positioned relatively as the APCu GUI positions some of its elements (like the right column
+   and the clear cache button) absolutely within it.
+   The body selector is needed to override the (equally prefixed) APCu GUI styles which are added to the page after this file. */
 #page-admin-tool-apcu-index #region-main {
-    height: 1200px;
-    overflow-y: scroll;
     position: relative;
+}
+body#page-admin-tool-apcu-index #region-main div.content {
+    position: relative;
+    width: auto;
+    z-index: auto;
 }
 
 /* The APCu GUI is styled with fixed light colours only.
