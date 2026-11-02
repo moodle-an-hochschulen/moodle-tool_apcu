@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-11-02 - Bugfix: Keep the sticky header row of the user cache list below the fixed navbar and move the host status diagrams below the other host status information if the main region is too narrow.
 * 2026-11-02 - Bugfix: Keep the view of the APCu management GUI (including the sort order) after a write operation and show an error message if a write operation did not succeed, including PHPUnit tests.
 * 2026-11-02 - Bugfix: Check all request sources for write operations of the APCu management GUI and add the sesskey to write operation links robustly, including PHPUnit tests.
 * 2026-11-02 - Bugfix: Detect a failed download of the APCu management GUI file correctly, including further PHPUnit tests for the locallib.php helper functions.
