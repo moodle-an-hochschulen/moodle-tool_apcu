@@ -29,15 +29,48 @@
  * These write operations are protected with a sesskey check by this plugin.
  * With each update of the APCu management GUI file, check if there are new write operations which have to be added here.
  *
- * @return array The request parameters as keys and the language string keys of the messages
- *               which are shown after the write operation as values. The parameter's value is passed to the language string.
+ * @return array The request parameters as keys and the language string keys of the messages which are shown after the
+ *               write operation as values. For each parameter, there is a message for success and a message for failure.
+ *               The parameter's value is passed to the language strings.
  */
 function tool_apcu_get_write_params() {
     // The request parameters of the APCu GUI which trigger write operations and the language strings for their messages.
     return [
-        'CC' => 'writeactioncachecleared', // Clear cache.
-        'DU' => 'writeactionentrydeleted', // Delete user cache entry.
+        // Clear cache.
+        'CC' => ['success' => 'writeactioncachecleared', 'failure' => 'writeactioncachenotcleared'],
+        // Delete user cache entry.
+        'DU' => ['success' => 'writeactionentrydeleted', 'failure' => 'writeactionentrynotdeleted'],
     ];
+}
+
+/**
+ * Helper function to get the request parameters which define the current view of the APCu management GUI.
+ *
+ * These parameters are kept when redirecting after a write operation.
+ * With each update of the APCu management GUI file, check if there are new view parameters which have to be added here.
+ *
+ * @return array
+ */
+function tool_apcu_get_view_params() {
+    // The request parameters of the APCu GUI which define the view (and do not trigger any write operation or image output).
+    return ['OB', 'SH', 'COUNT', 'SCOPE', 'SORT1', 'SORT2', 'AGGR', 'SEARCH'];
+}
+
+/**
+ * Helper function to get the request parameters in the same way as the APCu management GUI gets them.
+ *
+ * The APCu GUI uses $_REQUEST, but rebuilds it from $_GET and $_POST if it is empty.
+ *
+ * @return array
+ */
+function tool_apcu_get_gui_request() {
+    // If $_REQUEST is filled, the APCu GUI uses it as it is.
+    if (!empty($_REQUEST)) {
+        return $_REQUEST;
+    }
+
+    // Otherwise, the APCu GUI uses $_GET and $_POST with $_POST taking precedence.
+    return array_merge($_GET, $_POST);
 }
 
 /**
@@ -88,30 +121,30 @@ function tool_apcu_get_requested_write_actions($request) {
 /**
  * Helper function to get the URL to redirect to after the APCu management GUI performed a write operation.
  *
- * The URL keeps the current view of the APCu management GUI, but drops all write operation parameters,
- * so that the write operation is not repeated if the page is reloaded.
+ * The URL keeps the current view of the APCu management GUI, but drops all other parameters like the write operation
+ * parameters, so that the write operation is not repeated if the page is reloaded.
  *
- * @param array $request The APCu management GUI's $MYREQUEST.
+ * Please note that the request parameters must be taken before the APCu GUI is included.
+ * The APCu GUI's $MYREQUEST must not be used here as the APCu GUI modifies it while rendering (e.g. it toggles SORT2 when
+ * rendering the sortable table headers and it adds SEARCH_REGEX).
+ *
+ * @param array $request The request parameters, as returned by tool_apcu_get_gui_request().
  *
  * @return moodle_url
  */
 function tool_apcu_get_redirect_url($request) {
-    // Get the request parameters which must not be kept in the URL.
-    // Besides the write operation parameters, these are the APCu GUI's login and image parameters and the sesskey.
-    $excludedparams = array_merge(array_keys(tool_apcu_get_write_params()), ['LO', 'IMG', 'sesskey']);
-
     // Initialize the list of request parameters to be kept.
     $params = [];
 
-    // Iterate over all request parameters.
-    foreach ($request as $name => $value) {
-        // If the parameter is excluded or if it does not have a usable value, skip it.
-        if (in_array($name, $excludedparams, true) || $value === null || $value === '' || is_array($value)) {
+    // Iterate over all view parameters.
+    foreach (tool_apcu_get_view_params() as $name) {
+        // If the parameter is not given or if it does not have a usable value, skip it.
+        if (!isset($request[$name]) || $request[$name] === '' || is_array($request[$name])) {
             continue;
         }
 
         // Otherwise, keep the parameter.
-        $params[$name] = $value;
+        $params[$name] = $request[$name];
     }
 
     // Return the URL of the plugin's main page with the kept request parameters.
