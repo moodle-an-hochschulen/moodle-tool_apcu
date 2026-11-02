@@ -257,12 +257,13 @@ final class locallib_test extends \advanced_testcase {
      * Test that the body HTML code and the styles code are extracted from the APCu GUI output.
      *
      * @covers ::tool_apcu_parse_gui_output
+     * @covers ::tool_apcu_extract_gui_parts
      */
     public function test_parse_gui_output(): void {
         $output = "<html><head><style><!--\nbody { color: red; }\n//--></style></head>" .
             "<body><div class=\"head\">APCu</div></body></html>";
 
-        $result = tool_apcu_parse_gui_output($output);
+        $result = tool_apcu_extract_gui_parts(tool_apcu_parse_gui_output($output));
 
         $this->assertStringStartsWith('<body>', $result['html']);
         $this->assertStringContainsString('<div class="head">APCu</div>', $result['html']);
@@ -273,11 +274,12 @@ final class locallib_test extends \advanced_testcase {
      * Test that the APCu GUI output is still processed if it does not contain any style tag.
      *
      * @covers ::tool_apcu_parse_gui_output
+     * @covers ::tool_apcu_extract_gui_parts
      */
     public function test_parse_gui_output_without_style(): void {
         $output = "<html><head></head><body><div class=\"head\">APCu</div></body></html>";
 
-        $result = tool_apcu_parse_gui_output($output);
+        $result = tool_apcu_extract_gui_parts(tool_apcu_parse_gui_output($output));
 
         $this->assertStringContainsString('<div class="head">APCu</div>', $result['html']);
         $this->assertSame('', $result['css']);
@@ -367,6 +369,53 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
+     * Data provider for test_is_write_request().
+     *
+     * @return array
+     */
+    public static function is_write_request_provider(): array {
+        return [
+            'no request parameter sets' => [
+                'requests' => [],
+                'expected' => false,
+            ],
+            'empty request parameter sets' => [
+                'requests' => [[], [], []],
+                'expected' => false,
+            ],
+            'read-only parameters only' => [
+                'requests' => [['OB' => '2'], ['SEARCH' => 'foo'], ['OB' => '2', 'SEARCH' => 'foo']],
+                'expected' => false,
+            ],
+            'write operation in GET only, e.g. if $_REQUEST is empty' => [
+                'requests' => [['CC' => '1'], [], []],
+                'expected' => true,
+            ],
+            'write operation in POST only' => [
+                'requests' => [[], ['DU' => 'core_foo/bar'], []],
+                'expected' => true,
+            ],
+            'write operation in REQUEST only, hidden behind an empty value in GET' => [
+                'requests' => [['CC' => '0'], [], ['CC' => '1']],
+                'expected' => true,
+            ],
+        ];
+    }
+
+    /**
+     * Test that a write operation is detected in any of the given request parameter sets.
+     *
+     * @dataProvider is_write_request_provider
+     * @covers ::tool_apcu_is_write_request
+     *
+     * @param array $requests The request parameter sets.
+     * @param bool $expected The expected result.
+     */
+    public function test_is_write_request(array $requests, bool $expected): void {
+        $this->assertSame($expected, tool_apcu_is_write_request(...$requests));
+    }
+
+    /**
      * Test that the redirect URL keeps the view parameters and drops the write operation parameters.
      *
      * @covers ::tool_apcu_get_redirect_url
@@ -398,20 +447,24 @@ final class locallib_test extends \advanced_testcase {
     /**
      * Test that the sesskey is added to the links which trigger write operations and only to them.
      *
-     * @covers ::tool_apcu_parse_gui_output
      * @covers ::tool_apcu_add_sesskey_to_write_links
      */
-    public function test_parse_gui_output_adds_sesskey_to_write_links(): void {
+    public function test_add_sesskey_to_write_links(): void {
         $output = "<html><head></head><body><ol class=menu>" .
             "<li><a href=\"/admin/tool/apcu/index.php?SCOPE=A&SORT1=H&OB=1&SH=\">Refresh Data</a></li>" .
             "<li><a href=\"/admin/tool/apcu/index.php?SCOPE=A&SORT1=H&OB=2\">User Cache Entries</a></li>" .
             "<li><a class=\"aright\" href=\"/admin/tool/apcu/index.php?SCOPE=A&SORT1=H&CC=1&OB=1\">Clear Cache</a></li>" .
             "</ol>" .
             "<a href=\"/admin/tool/apcu/index.php?SCOPE=A&OB=2&DU=core_foo%2Fbar&SEARCH=core_foo\">Delete Now</a>" .
+            "<a href=\"/admin/tool/apcu/index.php?OB=2&DU=core_foo%2Fbar#key-1\">Delete With Fragment</a>" .
+            "<a href=\"/admin/tool/apcu/index.php?OB=2&DU=core_foo%2Fbar&sesskey=old\">Delete With Sesskey</a>" .
+            "<a href=\"/admin/tool/apcu/index.php?\">Empty Query</a>" .
             "<a href=\"#key-1\">Anchor</a>" .
             "</body></html>";
 
-        $result = tool_apcu_parse_gui_output($output);
+        $doc = tool_apcu_parse_gui_output($output);
+        tool_apcu_add_sesskey_to_write_links($doc);
+        $result = tool_apcu_extract_gui_parts($doc);
 
         // Parse the links from the resulting HTML code again.
         $doc = new \DOMDocument();
@@ -425,6 +478,15 @@ final class locallib_test extends \advanced_testcase {
         $this->assertStringEndsWith('&SEARCH=core_foo&sesskey=' . sesskey(), $hrefs['Delete Now']);
         $this->assertStringNotContainsString('sesskey', $hrefs['Refresh Data']);
         $this->assertStringNotContainsString('sesskey', $hrefs['User Cache Entries']);
+        $this->assertSame(
+            '/admin/tool/apcu/index.php?OB=2&DU=core_foo%2Fbar&sesskey=' . sesskey() . '#key-1',
+            $hrefs['Delete With Fragment']
+        );
+        $this->assertSame(
+            '/admin/tool/apcu/index.php?OB=2&DU=core_foo%2Fbar&sesskey=' . sesskey(),
+            $hrefs['Delete With Sesskey']
+        );
+        $this->assertSame('/admin/tool/apcu/index.php?', $hrefs['Empty Query']);
         $this->assertSame('#key-1', $hrefs['Anchor']);
     }
 }
