@@ -4,6 +4,18 @@ moodle-tool_apcu
 Changes
 -------
 
+### Unreleased
+
+* 2026-11-02 - Bugfix: Keep the sticky header row of the user cache list below the fixed navbar and move the host status diagrams below the other host status information if the main region is too narrow.
+* 2026-11-02 - Bugfix: Keep the view of the APCu management GUI (including the sort order) after a write operation and show an error message if a write operation did not succeed, including PHPUnit tests.
+* 2026-11-02 - Bugfix: Check all request sources for write operations of the APCu management GUI and add the sesskey to write operation links robustly, including PHPUnit tests.
+* 2026-11-02 - Bugfix: Detect a failed download of the APCu management GUI file correctly, including further PHPUnit tests for the locallib.php helper functions.
+* 2026-11-02 - Bugfix: Integrate the APCu management GUI into the page flow instead of showing it in a fixed-height box with its own vertical scrollbar.
+
+* 2026-11-01 - Improvement: Protect the write operations of the APCu management GUI (clearing the cache and deleting user cache entries) against cross-site request forgery with a sesskey check and redirect after these write operations, including PHPUnit and Behat tests.
+* 2026-11-01 - Improvement: Guard the processing of the APCu management GUI output against empty output and missing body or style tags, including PHPUnit tests for this processing.
+* 2026-11-01 - Improvement: Pin the APCu management GUI file download to a particular upstream commit and verify the file with a SHA-256 checksum before using it, including PHPUnit tests for this verification.
+
 ### v5.3-r1
 
 * 2026-10-20 - Upgrade: Adapt the APCu GUI colours to the Boost dark colour mode.

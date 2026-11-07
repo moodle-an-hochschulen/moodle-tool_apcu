@@ -1,9 +1,50 @@
-/* The APCu GUI works with position: absolute.
-   We have to work around this in a rather ugly way when we want to integrate the APCu GUI into the Moodle page. */
+/* The APCu GUI places its content container with position: absolute which takes it out of the page flow.
+   We put the content container back into the page flow so that the Moodle page grows with the APCu GUI.
+   The content container stays positioned relatively as the APCu GUI positions some of its elements (like the right column
+   and the clear cache button) absolutely within it.
+   The body selector is needed to override the (equally prefixed) APCu GUI styles which are added to the page after this file. */
 #page-admin-tool-apcu-index #region-main {
-    height: 1200px;
-    overflow-y: scroll;
     position: relative;
+}
+body#page-admin-tool-apcu-index #region-main div.content {
+    position: relative;
+    width: auto;
+    z-index: auto;
+}
+
+/* The APCu GUI makes the header row of the user cache list sticky.
+   As the page scrolls as a whole now, we let the header row stick below the fixed Moodle navbar instead of behind it.
+   Boost Union can add a menu bar above the navbar and provides its height as custom property (which is 0px if there is none). */
+body#page-admin-tool-apcu-index #region-main div.info table tr.sticky {
+    top: calc(var(--navbar-height, 60px) + var(--bu-smartmenu-menubar-height, 0px));
+    z-index: 1;
+}
+
+/* The APCu GUI positions the right column of the host status view (the diagrams) absolutely next to the left column.
+   If the main region is too narrow for both columns, we put the right column back into the page flow below the left column,
+   so that it neither overflows the main region nor overlaps the block drawer or the footer.
+   Both columns need about 80em, which the main region only gets from the Bootstrap xxl breakpoint on.
+   With the block drawer open, this would need a viewport of about 1720px for which Bootstrap does not have a breakpoint,
+   so we always put the right column below the left column then. */
+@media (max-width: 1399.98px) {
+    body#page-admin-tool-apcu-index #region-main div.div1,
+    body#page-admin-tool-apcu-index #region-main div.div2 {
+        max-width: 100%;
+    }
+    body#page-admin-tool-apcu-index #region-main div.div3 {
+        position: static;
+        width: auto;
+        max-width: 580px;
+    }
+}
+body#page-admin-tool-apcu-index #page.drawers.show-drawer-right #region-main div.div1,
+body#page-admin-tool-apcu-index #page.drawers.show-drawer-right #region-main div.div2 {
+    max-width: 100%;
+}
+body#page-admin-tool-apcu-index #page.drawers.show-drawer-right #region-main div.div3 {
+    position: static;
+    width: auto;
+    max-width: 580px;
 }
 
 /* The APCu GUI is styled with fixed light colours only.

@@ -30,12 +30,29 @@ global $CFG, $FULLME;
 // Set up the plugin's main page as external admin page.
 admin_externalpage_setup('tool_apcu');
 
+// If a write operation of the APCu GUI is requested, make sure that the request is not forged.
+// The APCu GUI's own authentication is disabled and would not protect against CSRF anyway.
+// The APCu GUI uses $_REQUEST, but rebuilds it from $_GET and $_POST if it is empty, so we check all of them.
+if (tool_apcu_is_write_request($_GET, $_POST, $_REQUEST)) {
+    require_sesskey();
+}
+
 // Check if the APCu tool exists on disk so that we can require it.
 if (tool_apcu_verify_guidrop_file() == true) {
     // Page setup.
     $title = get_string('pluginname', 'tool_apcu');
     $PAGE->set_title($title);
     $PAGE->set_heading($title);
+
+    // Remember the request parameters as the APCu GUI gets them, before the APCu GUI is included and modifies them.
+    $guirequest = tool_apcu_get_gui_request();
+
+    // If the deletion of a user cache entry is requested, remember if the entry exists before the APCu GUI deletes it.
+    // This way, we can report afterwards if the entry was really deleted.
+    $requestedwriteactions = tool_apcu_get_requested_write_actions($guirequest);
+    // If APCu is not available at all, the APCu GUI shows an error message itself, so we must not call any APCu function here.
+    $entryexisted = isset($requestedwriteactions['DU']) && function_exists('apcu_exists') &&
+            apcu_exists($requestedwriteactions['DU']);
 
     // Output has to be buffered because we want to modify the APCu GUI HTML code and as the APCu GUI sends some HTTP headers.
     ob_start();
@@ -48,26 +65,42 @@ if (tool_apcu_verify_guidrop_file() == true) {
     $output = ob_get_contents();
     ob_end_clean();
 
-    // Take control over libXML error handling as the APCu GUI HTML code is not perfect.
-    libxml_use_internal_errors(true);
+    // If the APCu GUI has performed a write operation, redirect to the same view without the write operation parameters.
+    // This way, the write operation is not repeated if the page is reloaded.
+    // $MYREQUEST is set by the APCu GUI which we have just included in the global scope. It contains the request parameters
+    // which the APCu GUI has validated and used, so we look at the same values which the APCu GUI has based its decision on.
+    // The APCu GUI's variables are accessed via $GLOBALS as their upper-case names do not comply with the Moodle coding style.
+    $writeactions = tool_apcu_get_requested_write_actions($GLOBALS['MYREQUEST'] ?? []);
+    if (!empty($writeactions)) {
+        $writeparams = tool_apcu_get_write_params();
+        foreach ($writeactions as $param => $value) {
+            // Check if the write operation was really performed.
+            // $AUTHENTICATED is set by the APCu GUI as well and the APCu GUI performs write operations only if it is set.
+            $succeeded = !empty($GLOBALS['AUTHENTICATED']);
+            if ($param === 'DU') {
+                $succeeded = $succeeded && $entryexisted && function_exists('apcu_exists') && !apcu_exists($value);
+            }
 
-    // Process APCu GUI HTML code into a DOMDocument object.
-    $apcudoc = new DOMDocument();
-    $apcudoc->loadHTML($output);
+            // Add a notification about the write operation to the stack.
+            if ($succeeded) {
+                core\notification::success(get_string($writeparams[$param]['success'], 'tool_apcu', s($value)));
+            } else {
+                core\notification::error(get_string($writeparams[$param]['failure'], 'tool_apcu', s($value)));
+            }
+        }
+        redirect(tool_apcu_get_redirect_url($guirequest));
+    }
 
-    // Process DOM and extract the body tag.
-    $apcubodytag = $apcudoc->getElementsByTagName('body')->item(0);
-    $apcuguihtml = $apcudoc->saveHTML($apcubodytag);
+    // Parse the APCu GUI HTML code.
+    $apcudoc = tool_apcu_parse_gui_output($output);
 
-    // Process DOM and extract the style tag.
-    $apcustyletag = $apcudoc->getElementsByTagName('style')->item(0);
-    $apcustylescode = $apcustyletag->nodeValue;
+    // Protect the write operations of the APCu GUI with the sesskey.
+    tool_apcu_add_sesskey_to_write_links($apcudoc);
 
-    // Throw away any libXML errors which have been raised.
-    libxml_clear_errors();
-
-    // Finish control over libXML error handling.
-    libxml_use_internal_errors(false);
+    // Extract the body HTML code and the styles code from the APCu GUI HTML code.
+    $apcuguiparts = tool_apcu_extract_gui_parts($apcudoc);
+    $apcuguihtml = $apcuguiparts['html'];
+    $apcustylescode = $apcuguiparts['css'];
 
     // Remove the HTML comments from the style code as they would interfere with the upcoming prefixing.
     $apcustylescode = str_replace('<!--', '', $apcustylescode);
