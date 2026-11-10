@@ -4,7 +4,7 @@ moodle-tool_apcu
 Changes
 -------
 
-### Unreleased
+### v5.0-r4
 
 * 2026-11-02 - Bugfix: Keep the sticky header row of the user cache list below the fixed navbar and move the host status diagrams below the other host status information if the main region is too narrow.
 * 2026-11-02 - Bugfix: Keep the view of the APCu management GUI (including the sort order) after a write operation and show an error message if a write operation did not succeed, including PHPUnit tests.
